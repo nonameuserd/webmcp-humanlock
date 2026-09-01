@@ -516,6 +516,12 @@ body.vault-running .vault-status-line--hero {
   box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
   opacity: 1;
 }
+.lock-card--openable {
+  cursor: pointer;
+}
+.lock-card--openable:hover {
+  border-color: rgba(0, 255, 136, 0.65);
+}
 .lock-card--solved {
   border-color: var(--ok);
   background: rgba(0, 255, 136, 0.06);
@@ -569,7 +575,8 @@ body.vault-running .vault-status-line--hero {
   scroll-margin-top: 88px;
 }
 .stage-header {
-  padding: 18px 20px;
+  position: relative;
+  padding: 18px 52px 18px 20px;
   border-bottom: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(0, 255, 136, 0.06), transparent);
 }
@@ -681,8 +688,7 @@ body.vault-running .vault-status-line--hero {
 .blur-controls,
 .swarm-controls,
 .whisper-controls,
-.lie-controls,
-.handshake-wrap {
+.lie-controls {
   display: flex;
   gap: 10px;
   align-items: center;
@@ -814,9 +820,64 @@ body.vault-running .vault-status-line--hero {
   display: grid;
   gap: 14px;
 }
+.handshake-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.handshake-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0.65;
+}
+.handshake-step--active {
+  opacity: 1;
+  border-color: rgba(0, 255, 136, 0.35);
+  background: rgba(0, 255, 136, 0.06);
+  color: var(--text);
+}
+.handshake-step--done {
+  opacity: 0.85;
+  border-color: rgba(0, 255, 136, 0.2);
+}
+.handshake-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+.handshake-step--active .handshake-step-num {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.handshake-step code {
+  font-size: 11px;
+}
 .handshake-stage {
   display: grid;
   gap: 12px;
+}
+.handshake-slider-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .handshake-track {
   height: 12px;
@@ -844,6 +905,37 @@ body.vault-running .vault-status-line--hero {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+.handshake-countdown {
+  min-height: 0;
+  text-align: center;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.handshake-countdown--on {
+  min-height: 64px;
+  font-size: 48px;
+  line-height: 64px;
+}
+.handshake-countdown--go {
+  color: #fff;
+  text-shadow: 0 0 24px rgba(0, 255, 136, 0.55);
+}
+.handshake-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.handshake-controls .input {
+  width: 140px;
+}
+.handshake-controls .btn:disabled,
+.handshake-controls .input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* debug */
@@ -1285,20 +1377,54 @@ body.vault-running .vault-status-line--hero {
 }
 
 /* immersive active lock */
-body.lock-active::before {
-  content: "";
+.stage-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.78);
   z-index: 25;
-  pointer-events: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
-body.vault-running .why-strip,
-body.vault-running .locks-journey,
-body.vault-running .how-works,
-body.vault-running .agent-prompts,
-body.vault-running .tool-bus,
-body.vault-running .quickstart,
+.stage-backdrop.hidden {
+  display: none;
+}
+.stage-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.stage-close:hover {
+  color: var(--text);
+  border-color: rgba(0, 255, 136, 0.35);
+  background: rgba(0, 255, 136, 0.08);
+}
+.stage-close:focus-visible {
+  outline: 2px solid var(--ok);
+  outline-offset: 2px;
+}
+body.lock-active .why-strip,
+body.lock-active .locks-journey,
+body.lock-active .how-works,
+body.lock-active .agent-prompts,
+body.lock-active .tool-bus,
+body.lock-active .quickstart,
 body.vault-running .vault-hero {
   display: none !important;
 }

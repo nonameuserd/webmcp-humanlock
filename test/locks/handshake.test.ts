@@ -9,7 +9,6 @@ describe("THE HANDSHAKE - align_quantum_lock", () => {
 
   beforeEach(() => {
     registry.unregisterAll();
-    // @ts-expect-error delete
     container = document.createElement("div");
     document.body.appendChild(container);
     onSolved = vi.fn();
@@ -135,17 +134,21 @@ describe("THE HANDSHAKE - align_quantum_lock", () => {
     api.unmount();
   });
 
-  it("submit without sync shows must sync", async () => {
+  it("submit stays locked until sync", async () => {
     const api = createHandshakeLock();
     api.mount(container, "4", onSolved);
     await flush();
     const input = container.querySelector<HTMLInputElement>("#handshake-input");
     const submit = container.querySelector<HTMLButtonElement>("#handshake-submit");
+    expect(input?.disabled).toBe(true);
+    expect(submit?.disabled).toBe(true);
+    input!.disabled = false;
+    submit!.disabled = false;
     input!.value = "4";
     submit!.click();
     expect(onSolved).not.toHaveBeenCalled();
     const log = container.querySelector<HTMLElement>("#handshake-log");
-    expect(log?.textContent).toContain("Must sync first");
+    expect(log?.textContent).toContain("Sync first");
     api.unmount();
   });
 

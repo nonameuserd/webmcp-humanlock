@@ -1,4 +1,5 @@
 import type { VaultLockId, VaultState } from "./webmcp/types";
+import { HANDSHAKE_SYNC_MS } from "./locks/handshake";
 
 const ORDER: VaultLockId[] = ["blur", "swarm", "whisper", "lie", "handshake"];
 
@@ -80,7 +81,7 @@ export const LOCK_DESCS: Record<VaultLockId, string> = {
   swarm: "5000 buttons, only one is real. Agent filters by vibe, human picks.",
   whisper: "Ultrasonic tone hides code. Agent converts to spectrogram, human reads.",
   lie: "Display lies about vault balance. Agent audits truth, human decides trust.",
-  handshake: "Human drag and agent align must land within 50ms. Prove symbiosis.",
+  handshake: `Human drag and agent align must land within ${HANDSHAKE_SYNC_MS}ms. Prove symbiosis.`,
 };
 
 export function generateSig(vaultCode: string): string {

@@ -424,8 +424,17 @@
         </section>
 
         <!-- Active lock stage — immersive -->
+        <div id="stage-backdrop" class="stage-backdrop hidden" aria-hidden="true"></div>
         <section id="stage" class="stage hidden">
           <div class="stage-header">
+            <button
+              type="button"
+              id="btn-stage-close"
+              class="stage-close"
+              aria-label="Close lock"
+            >
+              ×
+            </button>
             <h2 id="stage-title">Lock</h2>
             <p id="stage-desc">Description</p>
             <div id="stage-roles" class="stage-roles">

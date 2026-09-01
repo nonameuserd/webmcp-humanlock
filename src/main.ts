@@ -55,6 +55,10 @@ const progressHeader = document.getElementById(
 const codeEl = document.getElementById("vault-code-value") as HTMLElement;
 const codeWrap = document.getElementById("vault-code") as HTMLElement;
 const stage = document.getElementById("stage") as HTMLElement;
+const stageBackdrop = document.getElementById("stage-backdrop") as HTMLElement | null;
+const btnStageClose = document.getElementById(
+  "btn-stage-close",
+) as HTMLButtonElement | null;
 const stageTitle = document.getElementById("stage-title") as HTMLElement;
 const stageDesc = document.getElementById("stage-desc") as HTMLElement;
 const stageBody = document.getElementById("stage-body") as HTMLElement;
@@ -328,6 +332,29 @@ function updateStageRoles(id: VaultLockId): void {
   if (stageAgent) stageAgent.textContent = LOCK_AGENT[id];
 }
 
+function syncStageOverlay(): void {
+  const running = state.status === "running" || state.status === "decaying";
+  const open = Boolean(state.currentLock && running && !stage.classList.contains("hidden"));
+  document.body.classList.toggle("lock-active", open);
+  stageBackdrop?.classList.toggle("hidden", !open);
+  stageBackdrop?.setAttribute("aria-hidden", open ? "false" : "true");
+}
+
+function dismissStage(): void {
+  const running = state.status === "running" || state.status === "decaying";
+  if (!state.currentLock || !running) return;
+  stage.classList.add("hidden");
+  syncStageOverlay();
+}
+
+function showStage(): void {
+  const running = state.status === "running" || state.status === "decaying";
+  if (!state.currentLock || !running) return;
+  stage.classList.remove("hidden");
+  syncStageOverlay();
+  scrollStageIntoView();
+}
+
 function renderLockCards(): void {
   (Object.keys(locks) as VaultLockId[]).forEach((id) => {
     const card = document.getElementById(`lock-card-${id}`) as HTMLElement;
@@ -336,7 +363,7 @@ function renderLockCards(): void {
       card.className = "lock-card lock-card--solved";
       status.textContent = `SOLVED ${state.codes[id]}`;
     } else if (state.currentLock === id) {
-      card.className = "lock-card lock-card--active";
+      card.className = "lock-card lock-card--active lock-card--openable";
       status.textContent = "ACTIVE";
     } else {
       card.className = "lock-card lock-card--locked";
@@ -363,9 +390,11 @@ function renderLockCards(): void {
   }
 
   if (state.currentLock && running) {
-    document.body.classList.add("lock-active");
+    syncStageOverlay();
   } else {
     document.body.classList.remove("lock-active");
+    stageBackdrop?.classList.add("hidden");
+    stageBackdrop?.setAttribute("aria-hidden", "true");
   }
   updateLiveStatus(registry.list());
   updateToolBus();
@@ -417,6 +446,7 @@ function mountLock(id: VaultLockId): void {
   stageBody.addEventListener("keydown", () => decay.poke());
   updateUnifiedStatus(registry.list());
   scrollStageIntoView();
+  syncStageOverlay();
 }
 
 function onLockSolved(id: VaultLockId): void {
@@ -444,7 +474,8 @@ function onVaultUnlocked(): void {
   state.unlockedAt = Date.now();
   decay.stop();
   stage.classList.add("hidden");
-  document.body.classList.remove("lock-active", "vault-running");
+  syncStageOverlay();
+  document.body.classList.remove("vault-running");
   ring.classList.add("unlocked");
   if (decayBadge) {
     decayBadge.textContent = "Vault unlocked";
@@ -513,7 +544,8 @@ function resetVault(): void {
   cert.classList.add("hidden");
   stage.classList.add("hidden");
   ring.classList.remove("decaying", "unlocked");
-  document.body.classList.remove("lock-active", "vault-running");
+  syncStageOverlay();
+  document.body.classList.remove("vault-running");
   if (decayBadge) {
     decayBadge.textContent = "Vault idle";
     decayBadge.className = "badge badge--idle";
@@ -533,7 +565,10 @@ function resetVault(): void {
 }
 
 async function enterVault(): Promise<void> {
-  if (state.status === "running" && state.currentLock) return;
+  if (state.status === "running" && state.currentLock) {
+    if (stage.classList.contains("hidden")) showStage();
+    return;
+  }
   const ready = hasWebMCP() || (await waitForWebMCP({ timeoutMs: 10_000 }));
   if (!ready) {
     addLog(
@@ -590,6 +625,25 @@ async function registerGlobalTools(): Promise<void> {
     },
   });
   globalToolsRegistered = true;
+}
+
+function setupStageDismiss(): void {
+  btnStageClose?.addEventListener("click", dismissStage);
+  stageBackdrop?.addEventListener("click", dismissStage);
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!document.body.classList.contains("lock-active")) return;
+    dismissStage();
+  });
+  for (const id of LOCK_ORDER) {
+    const card = document.getElementById(`lock-card-${id}`);
+    card?.addEventListener("click", () => {
+      const running = state.status === "running" || state.status === "decaying";
+      if (state.currentLock === id && running && stage.classList.contains("hidden")) {
+        showStage();
+      }
+    });
+  }
 }
 
 function setupCopyPrompt(): void {
@@ -662,6 +716,7 @@ document.getElementById("btn-share")?.addEventListener("click", () => {
 
 updateBadges();
 renderLockCards();
+setupStageDismiss();
 setupCopyPrompt();
 setupReviewerMode();
 
