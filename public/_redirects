@@ -1,0 +1,2 @@
+# SPA fallback: all routes serve index.html so ?code=&sig= share URLs work
+/*    /index.html   200

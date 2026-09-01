@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HUMANLOCK - The Vault You Cannot Open Alone</title>
+    <meta
+      name="description"
+      content="A vault with 5 locks that only opens when human and agent collaborate via WebMCP. The first website impossible without both."
+    />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <div class="header-inner">
+          <div class="logo">
+            <img
+              src="/logo.svg"
+              alt="Humanlock logo"
+              class="logo-img"
+              width="40"
+              height="40"
+            />
+            <span class="logo-text">HUMANLOCK</span>
+          </div>
+          <nav id="lock-stepper" class="lock-stepper hidden" aria-label="Lock progress">
+            <button
+              type="button"
+              class="lock-step lock-step--locked"
+              data-lock="blur"
+              disabled
+              aria-label="Lock 1 THE BLUR"
+            >
+              01
+            </button>
+            <button
+              type="button"
+              class="lock-step lock-step--locked"
+              data-lock="swarm"
+              disabled
+              aria-label="Lock 2 THE SWARM"
+            >
+              02
+            </button>
+            <button
+              type="button"
+              class="lock-step lock-step--locked"
+              data-lock="whisper"
+              disabled
+              aria-label="Lock 3 THE WHISPER"
+            >
+              03
+            </button>
+            <button
+              type="button"
+              class="lock-step lock-step--locked"
+              data-lock="lie"
+              disabled
+              aria-label="Lock 4 THE LIE"
+            >
+              04
+            </button>
+            <button
+              type="button"
+              class="lock-step lock-step--locked"
+              data-lock="handshake"
+              disabled
+              aria-label="Lock 5 THE HANDSHAKE"
+            >
+              05
+            </button>
+          </nav>
+          <p
+            id="vault-status-line"
+            class="vault-status-line hidden"
+            aria-live="polite"
+          ></p>
+          <div class="header-status">
+            <span id="vault-progress-header" class="badge badge--idle">0 / 5</span>
+            <span id="webmcp-badge" class="badge badge--pending"
+              >Detecting WebMCP...</span
+            >
+            <button id="btn-reviewer-mode" class="btn btn--ghost btn--small">
+              Reviewer mode
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+        <!-- HERO — Cinematic vault -->
+        <section class="vault-hero">
+          <div class="hero-center">
+            <div class="hero-collapsible">
+              <p class="hero-kicker">HUMANLOCK</p>
+              <h1 class="vault-title">THE VAULT YOU<br />CANNOT OPEN ALONE</h1>
+              <p class="vault-subtitle">
+                Human alone: impossible.<br />
+                Agent alone: impossible.<br />
+                Together: solvable.
+              </p>
+
+              <div
+                id="vault-ring"
+                class="vault-lock vault--hero"
+                role="img"
+                aria-labelledby="vault-status-text"
+              >
+                <div class="vault-lock-scene" aria-hidden="true">
+                  <div class="vault-lock-glow"></div>
+                  <svg
+                    class="vault-lock-padlock"
+                    viewBox="0 0 120 160"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      class="vault-lock-shackle"
+                      d="M36 74V48a24 24 0 0 1 48 0v26"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="12"
+                      stroke-linecap="round"
+                    />
+                    <rect
+                      class="vault-lock-body"
+                      x="22"
+                      y="74"
+                      width="76"
+                      height="82"
+                      rx="16"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <div class="vault-fingerprint-badge">
+                    <svg
+                      class="vault-fingerprint"
+                      viewBox="0 0 64 64"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path d="M32 6C17 6 7 18 7 32" />
+                      <path d="M32 12C21 12 13 22 13 34" />
+                      <path d="M32 18C25 18 19 28 19 38" />
+                      <path d="M32 24C28 24 25 32 25 42" />
+                      <path d="M32 30C30 30 29 36 29 44" />
+                      <path d="M46 10c9 7 13 18 13 30" />
+                      <path d="M50 18c5 5 8 14 8 24" />
+                      <path d="M18 10C9 17 5 28 5 40" />
+                      <path d="M14 18C9 23 6 32 6 42" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="vault-ring-inner">
+                  <span id="vault-status-text" class="vault-status-text">LOCKED</span>
+                  <span id="vault-timer" class="vault-timer">--</span>
+                  <span id="vault-progress-hero" class="vault-progress-hero">0 / 5</span>
+                </div>
+              </div>
+              <p
+                id="vault-status-line-hero"
+                class="vault-status-line vault-status-line--hero hidden"
+                aria-live="polite"
+              ></p>
+              <p class="hero-requires">HUMAN AND AGENT REQUIRED</p>
+
+              <div class="vault-actions vault-actions--hero">
+                <button
+                  id="btn-enter"
+                  class="btn btn--primary btn--hero btn--blocked"
+                  type="button"
+                  aria-disabled="true"
+                  title="WebMCP required. Click for setup steps."
+                >
+                  ENTER VAULT
+                </button>
+                <button id="btn-reset" class="btn btn--ghost">Reset</button>
+              </div>
+
+              <div id="vault-code" class="vault-code hidden">
+                <span>Vault code:</span>
+                <code id="vault-code-value">-----</code>
+                <span id="vault-progress" class="vault-progress">0 / 5 locks</span>
+              </div>
+
+              <div id="webmcp-compact" class="webmcp-compact">
+                <span id="webmcp-compact-icon">●</span>
+                <span id="webmcp-compact-text">Detecting WebMCP...</span>
+                <button id="btn-how-webmcp" class="btn-link">How to enable ▸</button>
+              </div>
+              <div id="webmcp-details" class="webmcp-details hidden">
+                <p>WebMCP is an experimental standard. To test with a real agent:</p>
+                <ul>
+                  <li>
+                    <strong>ChatGPT desktop app</strong> built-in browser (not chatgpt.com
+                    in Chrome) — Model <strong>GPT-5.6 Sol</strong> or
+                    <strong>Terra</strong>, Settings → Browser → Permissions →
+                    <strong>Enable site tools</strong>
+                  </li>
+                  <li>
+                    <strong>Chrome Canary</strong> with
+                    <code>chrome://flags/#enable-webmcp</code> → Enabled
+                  </li>
+                  <li>
+                    Address bar → <strong>Site tools</strong> should list tools after
+                    Enter vault
+                  </li>
+                </ul>
+                <p>
+                  Without WebMCP, toggle <strong>Reviewer mode</strong> for tool bus and
+                  schema inspector.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div id="quickstart" class="quickstart reviewer-only">
+            <h3>Start with your agent</h3>
+            <ol>
+              <li>
+                <strong>Enter vault</strong> or have the agent call
+                <code>enter_vault</code>
+              </li>
+              <li><strong>Each lock registers one tool</strong> (see bus below)</li>
+              <li><strong>Human and agent act together</strong> on each lock</li>
+            </ol>
+            <button id="btn-copy-prompt" class="btn btn--primary btn--small">
+              Copy ChatGPT prompt
+            </button>
+            <div id="live-status" class="live-status">Detecting WebMCP...</div>
+          </div>
+        </section>
+
+        <!-- WHY YOU NEED EACH OTHER -->
+        <section class="why-strip">
+          <h2 class="why-title">WHY YOU NEED EACH OTHER</h2>
+          <div class="why-grid">
+            <div class="why-col">
+              <h3>👁 HUMAN</h3>
+              <ul>
+                <li>Perception</li>
+                <li>Judgment</li>
+                <li>Interaction</li>
+              </ul>
+            </div>
+            <div class="why-plus">and</div>
+            <div class="why-col">
+              <h3>⚙ AGENT</h3>
+              <ul>
+                <li>Computation</li>
+                <li>Search</li>
+                <li>Verification</li>
+              </ul>
+            </div>
+          </div>
+          <div class="why-vault">
+            <div class="why-vault-box">
+              <span>VAULT</span>
+              <strong>OPENS</strong>
+            </div>
+          </div>
+        </section>
+
+        <!-- THE FIVE LOCKS — narrative journey -->
+        <section class="locks-journey">
+          <h2 class="locks-title">THE FIVE LOCKS</h2>
+          <p class="locks-sub">
+            Each lock recovers one digit. Together they open the vault.
+          </p>
+          <div class="locks-overview">
+            <div id="lock-card-blur" class="lock-card lock-card--locked" data-lock="blur">
+              <span class="lock-index">01</span>
+              <h3>THE BLUR</h3>
+              <p>The first signal is hidden in speed</p>
+              <div class="lock-roles">
+                <div class="lock-role">
+                  <span class="role-label">👁 Human</span>
+                  <span class="role role--human">Find the glitch</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <div class="lock-role">
+                  <span class="role-label">⚙ Agent</span>
+                  <span class="role role--agent">freeze_frame()</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <span class="lock-result">→ digit recovered</span>
+              </div>
+              <span class="lock-status">LOCKED</span>
+            </div>
+            <div
+              id="lock-card-swarm"
+              class="lock-card lock-card--locked"
+              data-lock="swarm"
+            >
+              <span class="lock-index">02</span>
+              <h3>THE SWARM</h3>
+              <p>One truth hidden in 5000</p>
+              <div class="lock-roles">
+                <div class="lock-role">
+                  <span class="role-label">👁 Human</span>
+                  <span class="role role--human">Judge serif</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <div class="lock-role">
+                  <span class="role-label">⚙ Agent</span>
+                  <span class="role role--agent">filter_by_vibe()</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <span class="lock-result">→ digit recovered</span>
+              </div>
+              <span class="lock-status">LOCKED</span>
+            </div>
+            <div
+              id="lock-card-whisper"
+              class="lock-card lock-card--locked"
+              data-lock="whisper"
+            >
+              <span class="lock-index">03</span>
+              <h3>THE WHISPER</h3>
+              <p>A signal you cannot hear</p>
+              <div class="lock-roles">
+                <div class="lock-role">
+                  <span class="role-label">⚙ Agent</span>
+                  <span class="role role--agent">sonify_to_spectrogram()</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <div class="lock-role">
+                  <span class="role-label">👁 Human</span>
+                  <span class="role role--human">Read the image</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <span class="lock-result">→ digit recovered</span>
+              </div>
+              <span class="lock-status">LOCKED</span>
+            </div>
+            <div id="lock-card-lie" class="lock-card lock-card--locked" data-lock="lie">
+              <span class="lock-index">04</span>
+              <h3>THE LIE</h3>
+              <p>The display is lying</p>
+              <div class="lock-roles">
+                <div class="lock-role">
+                  <span class="role-label">⚙ Agent</span>
+                  <span class="role role--agent">audit_truth()</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <div class="lock-role">
+                  <span class="role-label">👁 Human</span>
+                  <span class="role role--human">Choose to trust</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <span class="lock-result">→ digit recovered</span>
+              </div>
+              <span class="lock-status">LOCKED</span>
+            </div>
+            <div
+              id="lock-card-handshake"
+              class="lock-card lock-card--locked"
+              data-lock="handshake"
+            >
+              <span class="lock-index">05</span>
+              <h3>THE HANDSHAKE</h3>
+              <p>Prove you are together</p>
+              <div class="lock-roles">
+                <div class="lock-role">
+                  <span class="role-label">👁 Human</span>
+                  <span class="role role--human">Arm and drag</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <div class="lock-role">
+                  <span class="role-label">⚙ Agent</span>
+                  <span class="role role--agent">align_quantum_lock()</span>
+                </div>
+                <div class="lock-arrow">↓</div>
+                <span class="lock-result">→ vault opens</span>
+              </div>
+              <span class="lock-status">LOCKED</span>
+            </div>
+          </div>
+          <div class="stepper-line" aria-hidden="true"></div>
+        </section>
+
+        <!-- WEBMCP TOOL BUS -->
+        <section id="tool-bus" class="tool-bus reviewer-only">
+          <div class="bus-header">
+            <h3>WEBMCP TOOL BUS</h3>
+            <span class="bus-hint">Dynamic — only the active lock's tool is exposed</span>
+          </div>
+          <div class="bus-track" id="bus-track">
+            <div class="bus-tool" data-tool="freeze_frame">
+              <span class="bus-name">freeze_frame</span>
+              <span class="bus-status" id="bus-freeze_frame">WAITING</span>
+            </div>
+            <span class="bus-arrow">→</span>
+            <div class="bus-tool" data-tool="filter_by_vibe">
+              <span class="bus-name">filter_by_vibe</span>
+              <span class="bus-status" id="bus-filter_by_vibe">WAITING</span>
+            </div>
+            <span class="bus-arrow">→</span>
+            <div class="bus-tool" data-tool="sonify_to_spectrogram">
+              <span class="bus-name">sonify_to_spectrogram</span>
+              <span class="bus-status" id="bus-sonify_to_spectrogram">WAITING</span>
+            </div>
+            <span class="bus-arrow">→</span>
+            <div class="bus-tool" data-tool="audit_truth">
+              <span class="bus-name">audit_truth</span>
+              <span class="bus-status" id="bus-audit_truth">WAITING</span>
+            </div>
+            <span class="bus-arrow">→</span>
+            <div class="bus-tool" data-tool="align_quantum_lock">
+              <span class="bus-name">align_quantum_lock</span>
+              <span class="bus-status" id="bus-align_quantum_lock">WAITING</span>
+            </div>
+          </div>
+          <p class="bus-foot">
+            The page changes what the agent can do as you progress. No static tool list.
+          </p>
+        </section>
+
+        <!-- Active lock stage — immersive -->
+        <section id="stage" class="stage hidden">
+          <div class="stage-header">
+            <h2 id="stage-title">Lock</h2>
+            <p id="stage-desc">Description</p>
+            <div id="stage-roles" class="stage-roles">
+              <div class="stage-role">
+                <span class="role-label">Your job</span>
+                <span id="stage-human" class="role role--human">—</span>
+              </div>
+              <span class="role-arrow">→ together →</span>
+              <div class="stage-role">
+                <span class="role-label">Agent job</span>
+                <span id="stage-agent" class="role role--agent">—</span>
+              </div>
+            </div>
+            <p class="stage-dont">Don't try to do the other part.</p>
+          </div>
+          <div id="stage-body" class="stage-body"></div>
+          <div class="stage-footer">
+            <div id="tool-inspector" class="tool-inspector hidden reviewer-only">
+              <div class="inspector-head">
+                <strong>Live WebMCP tool</strong>
+                <span id="inspector-name" class="mono">none</span>
+              </div>
+              <div id="inspector-desc" class="inspector-desc">
+                No tool registered. Enter vault to start.
+              </div>
+              <pre id="inspector-schema" class="inspector-schema">-</pre>
+            </div>
+            <div id="tool-status" class="tool-status"></div>
+            <div id="stage-log" class="stage-log"></div>
+          </div>
+        </section>
+
+        <section id="certificate" class="certificate hidden">
+          <div class="cert-payoff">
+            <div class="payoff-label">████████████████████████</div>
+            <h2 class="payoff-title">UNLOCKED</h2>
+            <div class="payoff-sub">HUMAN AND AGENT</div>
+            <div id="cert-time-big" class="payoff-time">00:00</div>
+            <div class="payoff-line"></div>
+            <div class="payoff-stats">
+              <div><span>HUMAN CONTRIBUTIONS</span><strong>5</strong></div>
+              <div><span>AGENT CONTRIBUTIONS</span><strong>5</strong></div>
+              <div><span>TOGETHER</span><strong>1 VAULT</strong></div>
+            </div>
+            <div class="payoff-line"></div>
+            <p class="payoff-thesis">
+              Neither of you could open it alone.<br /><strong>That is the point.</strong>
+            </p>
+            <div class="payoff-label">████████████████████████</div>
+          </div>
+          <p class="cert-sub">You and your agent opened HUMANLOCK together.</p>
+          <div class="cert-grid">
+            <div>
+              <span>Vault code</span>
+              <code id="cert-code">-----</code>
+            </div>
+            <div>
+              <span>Time</span>
+              <code id="cert-time">--</code>
+            </div>
+            <div>
+              <span>Human and Agent sig</span>
+              <code id="cert-sig">--</code>
+            </div>
+          </div>
+          <div class="cert-actions">
+            <button id="btn-share" class="btn btn--primary">Copy share URL</button>
+            <button id="btn-play-again" class="btn btn--ghost">Play again</button>
+          </div>
+        </section>
+
+        <section class="agent-prompts reviewer-only">
+          <h3>Agent prompt</h3>
+          <div class="prompt-card">
+            <p>Open this URL in ChatGPT desktop browser, then send:</p>
+            <pre class="prompt-pre">
+List my WebMCP tools and help me open this vault. Start with THE BLUR, call freeze_frame at the glitch. Then filter_by_vibe, sonify_to_spectrogram, audit_truth, and align_quantum_lock together with me.</pre>
+            <button class="btn btn--ghost btn--small" data-copy="chatgpt">Copy</button>
+          </div>
+        </section>
+
+        <details class="how-works">
+          <summary>How WebMCP works ▸</summary>
+          <div class="how-works-body">
+            <p>
+              Each lock registers one
+              <code>document.modelContext.registerTool()</code> tool. The agent discovers
+              it via <code>getTools()</code> or <code>toolchange</code> event, calls it
+              with structured args, and the page mutates shared DOM state. Human and agent
+              see the same vault. Neither can cheat: tools validate inputs and locks judge
+              deterministically.
+            </p>
+            <div class="explain-code">
+              <code>freeze_frame({ timestamp: 300 }) -> Revealed digit 7</code>
+              <code
+                >filter_by_vibe({ description: "most trustworthy" }) -> 12
+                candidates</code
+              >
+              <code>sonify_to_spectrogram() -> image with code 42</code>
+              <code>audit_truth() -> Real: $999 vs Display: $10</code>
+              <code>align_quantum_lock({}) -> 12ms window, success</code>
+            </div>
+          </div>
+        </details>
+      </main>
+
+      <footer class="footer">
+        <span
+          >Built for
+          <a href="https://openai.com/webmcp-challenge/" target="_blank" rel="noreferrer"
+            >OpenAI WebMCP Challenge</a
+          ></span
+        >
+        <span
+          >WebMCP spec:
+          <a
+            href="https://github.com/webmachinelearning/webmcp"
+            target="_blank"
+            rel="noreferrer"
+            >github.com/webmachinelearning/webmcp</a
+          ></span
+        >
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
