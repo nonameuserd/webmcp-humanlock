@@ -52,9 +52,12 @@ code,
   gap: 10px;
   font-weight: 700;
 }
-.logo-mark {
-  color: var(--accent);
-  font-size: 22px;
+.logo-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: block;
 }
 .logo-text {
   letter-spacing: 0.14em;

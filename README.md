@@ -2,6 +2,10 @@
 
 **A WebMCP Challenge submission. A website that is impossible without human and agent together.**
 
+<p align="center">
+  <img src="public/logo.svg" alt="HUMANLOCK logo: Human and AI Agent DNA symbiosis" width="160" height="160" />
+</p>
+
 **Live demo:** [https://humanlock.pages.dev/](https://humanlock.pages.dev/)
 
 Open in the ChatGPT in-app browser or Chrome Canary with `chrome://flags/#enable-webmcp`.
