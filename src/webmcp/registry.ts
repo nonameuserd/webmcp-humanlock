@@ -7,9 +7,17 @@ type RegistryEntry = {
   registered: boolean;
 };
 
+/** Live panel events for human-visible agent activity. */
+export type RegistryActivity = {
+  kind: "register" | "unregister" | "invoke" | "result" | "error";
+  tool: string;
+  detail?: string;
+};
+
 class ToolRegistry {
   private entries = new Map<string, RegistryEntry>();
   private listeners = new Set<(tools: string[]) => void>();
+  private activityListeners = new Set<(event: RegistryActivity) => void>();
 
   isSupported(): boolean {
     return hasWebMCP();
@@ -32,6 +40,19 @@ class ToolRegistry {
     for (const fn of this.listeners) fn(names);
   }
 
+  /**
+   * Subscribe to tool lifecycle and invoke events for the live agent panel.
+   * Tenant isolation: activity stays in-page; nothing is sent off-origin.
+   */
+  onActivity(fn: (event: RegistryActivity) => void): () => void {
+    this.activityListeners.add(fn);
+    return () => this.activityListeners.delete(fn);
+  }
+
+  private emitActivity(event: RegistryActivity): void {
+    for (const fn of this.activityListeners) fn(event);
+  }
+
   async register(
     def: WebMCPToolDef<Record<string, JsonValue>>,
   ): Promise<AbortController> {
@@ -45,6 +66,15 @@ class ToolRegistry {
       );
       entry.registered = true;
       this.emit();
+      this.emitActivity({
+        kind: "register",
+        tool: def.name,
+        detail: "fallback registration",
+      });
+      controller.signal.addEventListener("abort", () => {
+        entry.registered = false;
+        this.emit();
+      });
       return controller;
     }
 
@@ -62,7 +92,28 @@ class ToolRegistry {
           ): Promise<ToolResult> => {
             const signal = opts?.signal ?? controller.signal;
             if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-            return def.execute(args, { signal });
+            this.emitActivity({
+              kind: "invoke",
+              tool: def.name,
+              detail: "agent called tool",
+            });
+            try {
+              const result = await def.execute(args, { signal });
+              this.emitActivity({
+                kind: result.isError ? "error" : "result",
+                tool: def.name,
+                detail: result.content[0]?.text?.slice(0, 120),
+              });
+              return result;
+            } catch (err) {
+              const error = err as Error;
+              this.emitActivity({
+                kind: "error",
+                tool: def.name,
+                detail: error.message,
+              });
+              throw err;
+            }
           },
         },
         { signal: controller.signal },
@@ -70,6 +121,11 @@ class ToolRegistry {
       entry.registered = true;
       console.info(`[registry] registered tool ${def.name}`);
       this.emit();
+      this.emitActivity({
+        kind: "register",
+        tool: def.name,
+        detail: "discovered via WebMCP",
+      });
     } catch (err) {
       console.error(`[registry] failed to register ${def.name}`, err);
       this.entries.delete(def.name);
@@ -91,6 +147,7 @@ class ToolRegistry {
     entry.registered = false;
     this.entries.delete(name);
     this.emit();
+    this.emitActivity({ kind: "unregister", tool: name });
     console.info(`[registry] unregistered ${name}`);
   }
 
@@ -110,7 +167,26 @@ class ToolRegistry {
   ): Promise<ToolResult> {
     const entry = this.entries.get(name);
     if (!entry) throw new Error(`Tool ${name} not found`);
-    return entry.def.execute(args, { signal: entry.controller.signal });
+    this.emitActivity({
+      kind: "invoke",
+      tool: name,
+      detail: "debug invoke",
+    });
+    try {
+      const result = await entry.def.execute(args, {
+        signal: entry.controller.signal,
+      });
+      this.emitActivity({
+        kind: result.isError ? "error" : "result",
+        tool: name,
+        detail: result.content[0]?.text?.slice(0, 120),
+      });
+      return result;
+    } catch (err) {
+      const error = err as Error;
+      this.emitActivity({ kind: "error", tool: name, detail: error.message });
+      throw err;
+    }
   }
 
   getDef(name: string): WebMCPToolDef<Record<string, JsonValue>> | undefined {

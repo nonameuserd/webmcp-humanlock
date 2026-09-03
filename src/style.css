@@ -112,17 +112,141 @@ code,
 }
 .vault-hero {
   display: grid;
-  gap: 22px;
+  gap: 28px;
 }
-.vault-display {
+.hero-copy {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+.hero-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.vault-title {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+}
+.vault-thesis {
+  margin: 16px auto 18px;
+  max-width: 420px;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.hero-copy .not-captcha {
+  text-align: left;
+  max-width: 420px;
+  margin: 0 auto 0;
+}
+.vault-stage {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 24px;
-  align-items: center;
+  grid-template-columns: minmax(240px, 320px) minmax(240px, 340px);
+  gap: 20px;
+  align-items: stretch;
+  justify-content: center;
+}
+.vault-actions--hero {
+  justify-content: center;
+}
+.btn--hero {
+  min-width: 220px;
+  padding: 14px 22px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vault-wait {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--armed);
+}
+.presence {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+.presence-pill {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.presence-pill--ok {
+  color: var(--ok);
+  border-color: rgba(0, 255, 136, 0.35);
+}
+.presence-pill--wait {
+  color: var(--armed);
+  border-color: rgba(255, 196, 0, 0.35);
+}
+.agent-panel {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 24px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 280px;
+}
+.agent-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.agent-panel-kicker {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.agent-panel-line {
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.agent-panel-log {
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+  background: #0a0a0f;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-height: 120px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--text);
+}
+.agent-panel-log:empty::before {
+  content: "No agent activity yet.";
+  color: var(--muted);
+}
+.vault-lock--armed .vault-lock-glow {
+  animation: vault-lock-pulse 1.6s ease-in-out infinite;
+}
+.vault-lock--armed .vault-lock-padlock {
+  color: rgba(255, 255, 255, 0.52);
 }
 .vault-lock {
   display: flex;
@@ -238,16 +362,6 @@ code,
   font-family: "JetBrains Mono", monospace;
   font-size: 12px;
 }
-.vault-title {
-  margin: 0;
-  font-size: 28px;
-  line-height: 1.1;
-}
-.vault-subtitle {
-  color: var(--muted);
-  margin: 10px 0 14px;
-  line-height: 1.5;
-}
 .not-captcha {
   margin: 0 0 16px;
   padding: 12px 14px;
@@ -271,7 +385,9 @@ code,
 .agent-prompt {
   display: grid;
   gap: 8px;
-  margin: 0 0 16px;
+  margin: 0 auto;
+  max-width: 720px;
+  width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -311,10 +427,12 @@ code,
   flex-wrap: wrap;
 }
 .vault-code {
-  margin-top: 16px;
+  margin-top: 0;
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
   color: var(--muted);
   font-size: 13px;
 }
@@ -337,15 +455,24 @@ code,
 /* locks overview */
 .locks-overview {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
 }
 .lock-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 16px;
   position: relative;
+  min-height: 220px;
+}
+.lock-sense {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
 }
 .lock-card--locked {
   opacity: 0.8;
@@ -805,31 +932,44 @@ code,
 /* explain */
 .explain {
   margin-top: 28px;
+}
+.explain-details {
   background: var(--card);
-  border: 1px solid rgba(0, 255, 136, 0.22);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 22px 22px 20px;
-  box-shadow: 0 0 28px rgba(0, 255, 136, 0.06);
+  padding: 18px 20px;
+}
+.explain-details > summary {
+  cursor: pointer;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.explain-details > summary::-webkit-details-marker {
+  display: none;
 }
 .explain-kicker {
-  margin: 0 0 8px !important;
-  font-size: 11px !important;
+  margin: 0;
+  font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent) !important;
+  color: var(--accent);
   font-weight: 700;
 }
-.explain h3 {
-  margin: 0 0 8px;
-  font-size: 18px;
-  line-height: 1.3;
+.explain-summary-title {
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text);
 }
-.explain-lead {
-  margin: 0 0 12px !important;
-  color: var(--text) !important;
-  font-size: 14px !important;
-  line-height: 1.5 !important;
+.explain-summary-lead {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.explain-details[open] > summary {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 .explain p {
   color: var(--muted);
@@ -851,6 +991,9 @@ code,
 .explain-foot {
   font-size: 11px;
 }
+.explain .locks-copy-hint {
+  margin: 14px 0 8px;
+}
 
 /* footer */
 .footer {
@@ -869,7 +1012,7 @@ code,
 
 /* responsive */
 @media (max-width: 860px) {
-  .vault-display {
+  .vault-stage {
     grid-template-columns: 1fr;
   }
   .vault-lock {
@@ -883,7 +1026,7 @@ code,
     width: 112px;
   }
   .locks-overview {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
   .cert-grid {
     grid-template-columns: 1fr;

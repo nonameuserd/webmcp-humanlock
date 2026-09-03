@@ -48,6 +48,7 @@ const badge = document.getElementById("webmcp-badge") as HTMLElement;
 const decayBadge = document.getElementById("decay-badge") as HTMLElement;
 const ring = document.getElementById("vault-ring") as HTMLElement;
 const statusText = document.getElementById("vault-status-text") as HTMLElement;
+const vaultWait = document.getElementById("vault-wait") as HTMLElement | null;
 const timerEl = document.getElementById("vault-timer") as HTMLElement;
 const progressEl = document.getElementById("vault-progress") as HTMLElement;
 const codeEl = document.getElementById("vault-code-value") as HTMLElement;
@@ -60,6 +61,105 @@ const toolStatus = document.getElementById("tool-status") as HTMLElement;
 const debugPanel = document.getElementById("debug-panel") as HTMLElement;
 const debugButtons = document.getElementById("debug-buttons") as HTMLElement;
 const cert = document.getElementById("certificate") as HTMLElement;
+const agentStatus = document.getElementById(
+  "agent-panel-status",
+) as HTMLElement | null;
+const agentWebmcp = document.getElementById(
+  "agent-panel-webmcp",
+) as HTMLElement | null;
+const agentTool = document.getElementById(
+  "agent-panel-tool",
+) as HTMLElement | null;
+const agentLog = document.getElementById(
+  "agent-panel-log",
+) as HTMLElement | null;
+const presenceHuman = document.getElementById(
+  "presence-human",
+) as HTMLElement | null;
+const presenceAgent = document.getElementById(
+  "presence-agent",
+) as HTMLElement | null;
+
+const agentLogLines: string[] = [];
+
+/**
+ * Push a short line into the live agent panel log.
+ * Tenant isolation: log is session-local DOM only.
+ */
+function pushAgentLog(line: string): void {
+  if (!agentLog) return;
+  agentLogLines.unshift(line);
+  if (agentLogLines.length > 6) agentLogLines.length = 6;
+  agentLog.innerHTML = "";
+  for (const entry of agentLogLines) {
+    const li = document.createElement("li");
+    li.textContent = entry;
+    agentLog.appendChild(li);
+  }
+}
+
+function updateAgentPresence(): void {
+  const connected = hasWebMCP();
+  const tools = registry.list();
+  if (agentWebmcp) {
+    agentWebmcp.textContent = connected
+      ? "WebMCP: connected"
+      : "WebMCP: unavailable (fallback)";
+  }
+  if (agentTool) {
+    agentTool.textContent = tools.length
+      ? `Tool: ${tools.join(", ")}`
+      : "Tool: none";
+  }
+  if (agentStatus) {
+    if (state.status === "unlocked") {
+      agentStatus.textContent = "Done";
+      agentStatus.className = "badge badge--ok";
+    } else if (connected && tools.length > 0) {
+      agentStatus.textContent = "Active";
+      agentStatus.className = "badge badge--ok";
+    } else if (connected) {
+      agentStatus.textContent = "Connected";
+      agentStatus.className = "badge badge--ok";
+    } else {
+      agentStatus.textContent = "Waiting";
+      agentStatus.className = "badge badge--pending";
+    }
+  }
+  if (presenceAgent) {
+    if (connected) {
+      presenceAgent.textContent = "Agent · connected";
+      presenceAgent.className = "presence-pill presence-pill--ok";
+    } else {
+      presenceAgent.textContent = "Agent · waiting";
+      presenceAgent.className = "presence-pill presence-pill--wait";
+    }
+  }
+  if (presenceHuman) {
+    presenceHuman.textContent = "Human · ready";
+    presenceHuman.className = "presence-pill presence-pill--ok";
+  }
+  if (vaultWait) {
+    if (state.status === "unlocked") {
+      vaultWait.textContent = "Opened together";
+    } else if (state.status === "dead") {
+      vaultWait.textContent = "Decayed";
+    } else if (connected && tools.length > 0) {
+      vaultWait.textContent = `Agent tool ready: ${tools[0]}`;
+    } else if (connected) {
+      vaultWait.textContent = "Agent connected · begin collaboration";
+    } else {
+      vaultWait.textContent = "Waiting for agent...";
+    }
+  }
+  if (connected && state.status === "idle") {
+    ring.classList.add("vault-lock--armed");
+  } else if (connected && state.status === "running") {
+    ring.classList.add("vault-lock--armed");
+  } else {
+    ring.classList.remove("vault-lock--armed");
+  }
+}
 
 function updateBadges(): void {
   const help = document.getElementById("webmcp-help");
@@ -74,9 +174,16 @@ function updateBadges(): void {
   }
   registry.onChange((tools) => {
     toolStatus.textContent = `Tools: ${tools.join(", ") || "none"}`;
+    updateAgentPresence();
     renderDebug();
   });
+  registry.onActivity((event) => {
+    const detail = event.detail ? ` · ${event.detail}` : "";
+    pushAgentLog(`${event.kind}: ${event.tool}${detail}`);
+    updateAgentPresence();
+  });
   toolStatus.textContent = `Tools: ${registry.list().join(", ") || "none"}`;
+  updateAgentPresence();
   renderDebug();
 }
 
@@ -104,6 +211,7 @@ function renderLockCards(): void {
         : "LOCKED";
   if (state.status === "unlocked") ring.classList.add("unlocked");
   else ring.classList.remove("unlocked");
+  updateAgentPresence();
 }
 
 function renderDebug(): void {

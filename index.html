@@ -44,7 +44,24 @@
       <main class="main">
         <!-- Vault hero -->
         <section class="vault-hero">
-          <div class="vault-display">
+          <div class="hero-copy">
+            <p class="hero-kicker">HUMANLOCK</p>
+            <h1 class="vault-title">The vault you cannot open alone</h1>
+            <p class="vault-thesis">
+              The agent has the tools.<br />
+              You have the judgment.<br />
+              Neither has the key alone.
+            </p>
+            <aside class="not-captcha" aria-label="Not a CAPTCHA">
+              <p class="not-captcha-kicker">Not a CAPTCHA</p>
+              <p class="not-captcha-lead">
+                A CAPTCHA asks &ldquo;are you human?&rdquo;<br />
+                HUMANLOCK asks &ldquo;what can only you do?&rdquo;
+              </p>
+            </aside>
+          </div>
+
+          <div class="vault-stage">
             <div
               id="vault-ring"
               class="vault-lock"
@@ -100,62 +117,74 @@
                 <span id="vault-status-text" class="vault-status-text"
                   >LOCKED</span
                 >
+                <span id="vault-wait" class="vault-wait"
+                  >Waiting for agent...</span
+                >
                 <span id="vault-timer" class="vault-timer">--</span>
               </div>
-            </div>
-            <div class="vault-meta">
-              <h1 class="vault-title">The vault you cannot open alone</h1>
-              <p class="vault-subtitle">
-                Five locks. Each one splits what you can see from what the
-                agent can call. Human alone fails. Agent alone fails. Together,
-                you open it.
-              </p>
-              <aside class="not-captcha" aria-label="Not a CAPTCHA">
-                <p class="not-captcha-kicker">Not a CAPTCHA</p>
-                <p class="not-captcha-lead">
-                  A CAPTCHA asks &ldquo;are you human?&rdquo;<br />
-                  HUMANLOCK asks &ldquo;what can only you do?&rdquo;
-                </p>
-              </aside>
-              <div class="agent-prompt">
-                <span>Paste this to your agent after you click Enter vault</span>
-                <code id="hero-prompt"
-                  >List my WebMCP tools and help me open this vault. Start with THE BLUR: freeze_frame({ timestamp: 300 })</code
+              <div class="presence" aria-live="polite">
+                <span id="presence-human" class="presence-pill presence-pill--ok"
+                  >Human · ready</span
                 >
-                <button
-                  id="btn-copy-prompt"
-                  type="button"
-                  class="btn btn--ghost"
-                  aria-live="polite"
-                >
-                  Copy prompt
-                </button>
-              </div>
-              <p id="webmcp-help" class="webmcp-help hidden">
-                WebMCP is unavailable here. Open this URL in the ChatGPT app, or
-                Chrome Canary with
-                <code>chrome://flags/#enable-webmcp</code>. Debug tools only
-                simulate the agent locally. They are not a real open.
-              </p>
-              <div class="vault-actions">
-                <button id="btn-enter" class="btn btn--primary">
-                  Enter vault
-                </button>
-                <button id="btn-reset" class="btn btn--ghost">
-                  Reset vault
-                </button>
-                <button id="btn-debug" class="btn btn--ghost hidden">
-                  Debug tools
-                </button>
-              </div>
-              <div id="vault-code" class="vault-code hidden">
-                <span>Vault code:</span>
-                <code id="vault-code-value">-----</code>
-                <span id="vault-progress" class="vault-progress"
-                  >0 / 5 locks</span
+                <span
+                  id="presence-agent"
+                  class="presence-pill presence-pill--wait"
+                  >Agent · waiting</span
                 >
               </div>
             </div>
+
+            <aside class="agent-panel" id="agent-panel" aria-label="Agent">
+              <div class="agent-panel-head">
+                <span class="agent-panel-kicker">Agent</span>
+                <span id="agent-panel-status" class="badge badge--pending"
+                  >Waiting</span
+                >
+              </div>
+              <p id="agent-panel-webmcp" class="agent-panel-line">
+                WebMCP: detecting...
+              </p>
+              <p id="agent-panel-tool" class="agent-panel-line">Tool: none</p>
+              <ul id="agent-panel-log" class="agent-panel-log"></ul>
+            </aside>
+          </div>
+
+          <div class="vault-actions vault-actions--hero">
+            <button id="btn-enter" class="btn btn--primary btn--hero">
+              Begin collaboration
+            </button>
+            <button id="btn-reset" class="btn btn--ghost">Reset vault</button>
+            <button id="btn-debug" class="btn btn--ghost hidden">
+              Debug tools
+            </button>
+          </div>
+          <div class="agent-prompt">
+            <span
+              >Paste this to your agent after you click Begin
+              collaboration</span
+            >
+            <code id="hero-prompt"
+              >List my WebMCP tools and help me open this vault. Start with THE BLUR: freeze_frame({ timestamp: 300 })</code
+            >
+            <button
+              id="btn-copy-prompt"
+              type="button"
+              class="btn btn--ghost"
+              aria-live="polite"
+            >
+              Copy prompt
+            </button>
+          </div>
+          <p id="webmcp-help" class="webmcp-help hidden">
+            WebMCP is unavailable here. Open this URL in the ChatGPT app, or
+            Chrome Canary with
+            <code>chrome://flags/#enable-webmcp</code>. Debug tools only
+            simulate the agent locally. They are not a real open.
+          </p>
+          <div id="vault-code" class="vault-code hidden">
+            <span>Vault code:</span>
+            <code id="vault-code-value">-----</code>
+            <span id="vault-progress" class="vault-progress">0 / 5 locks</span>
           </div>
 
           <p class="locks-copy-hint">Click a call to copy it for your agent</p>
@@ -167,6 +196,7 @@
             >
               <span class="lock-index">01</span>
               <h3>THE BLUR</h3>
+              <p class="lock-sense">Perception</p>
               <dl class="lock-roles">
                 <div>
                   <dt>Agent</dt>
@@ -194,6 +224,7 @@
             >
               <span class="lock-index">02</span>
               <h3>THE SWARM</h3>
+              <p class="lock-sense">Judgment</p>
               <dl class="lock-roles">
                 <div>
                   <dt>Agent</dt>
@@ -221,6 +252,7 @@
             >
               <span class="lock-index">03</span>
               <h3>THE WHISPER</h3>
+              <p class="lock-sense">Interpretation</p>
               <dl class="lock-roles">
                 <div>
                   <dt>Agent</dt>
@@ -248,6 +280,7 @@
             >
               <span class="lock-index">04</span>
               <h3>THE LIE</h3>
+              <p class="lock-sense">Trust</p>
               <dl class="lock-roles">
                 <div>
                   <dt>Agent</dt>
@@ -275,6 +308,7 @@
             >
               <span class="lock-index">05</span>
               <h3>THE HANDSHAKE</h3>
+              <p class="lock-sense">Intent</p>
               <dl class="lock-roles">
                 <div>
                   <dt>Agent</dt>
@@ -353,71 +387,77 @@
 
         <!-- How it works -->
         <section class="explain">
-          <p class="explain-kicker">How WebMCP makes this possible</p>
-          <h3>Each lock registers exactly one WebMCP tool</h3>
-          <p class="explain-lead">
-            When the lock changes, the available agent capability changes with
-            it.
-          </p>
-          <p>
-            Each lock calls
-            <code>document.modelContext.registerTool()</code>. The agent
-            discovers it via <code>getTools()</code> or
-            <code>toolchange</code>, calls it with structured args, and the page
-            mutates shared DOM state. Human and agent see the same vault.
-            Neither can cheat: tools validate inputs and locks judge
-            deterministically.
-          </p>
-          <p class="locks-copy-hint">Click to copy a call for your agent</p>
-          <div class="explain-code">
-            <button
-              type="button"
-              class="lock-call"
-              data-copy-call="freeze_frame({ timestamp: 300 })"
-              aria-label="Copy freeze_frame call"
-            >
-              freeze_frame({ timestamp: 300 })
-            </button>
-            <button
-              type="button"
-              class="lock-call"
-              data-copy-call='filter_by_vibe({ description: "most trustworthy" })'
-              aria-label="Copy filter_by_vibe call"
-            >
-              filter_by_vibe({ description: "most trustworthy" })
-            </button>
-            <button
-              type="button"
-              class="lock-call"
-              data-copy-call="sonify_to_spectrogram()"
-              aria-label="Copy sonify_to_spectrogram call"
-            >
-              sonify_to_spectrogram()
-            </button>
-            <button
-              type="button"
-              class="lock-call"
-              data-copy-call="audit_truth()"
-              aria-label="Copy audit_truth call"
-            >
-              audit_truth()
-            </button>
-            <button
-              type="button"
-              class="lock-call"
-              data-copy-call="align_quantum_lock()"
-              aria-label="Copy align_quantum_lock call"
-            >
-              align_quantum_lock()
-            </button>
-          </div>
-          <p class="explain-foot">
-            Judges: open this URL in the ChatGPT in-app browser, or Chrome
-            Canary with <code>chrome://flags/#enable-webmcp</code>. On phones,
-            tap to play audio (autoplay is blocked) and expect a coarser canvas
-            than a desktop GPU. Shared certificate links
-            (<code>?code=&amp;sig=</code>) render without WebMCP.
-          </p>
+          <details class="explain-details">
+            <summary>
+              <span class="explain-kicker">Developer view</span>
+              <span class="explain-summary-title"
+                >How WebMCP makes this possible</span
+              >
+              <span class="explain-summary-lead"
+                >Each lock registers exactly one WebMCP tool. When the lock
+                changes, the available agent capability changes with it.</span
+              >
+            </summary>
+            <p>
+              Each lock calls
+              <code>document.modelContext.registerTool()</code>. The agent
+              discovers it via <code>getTools()</code> or
+              <code>toolchange</code>, calls it with structured args, and the
+              page mutates shared DOM state. Human and agent see the same vault.
+              Neither can cheat: tools validate inputs and locks judge
+              deterministically.
+            </p>
+            <p class="locks-copy-hint">Click to copy a call for your agent</p>
+            <div class="explain-code">
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="freeze_frame({ timestamp: 300 })"
+                aria-label="Copy freeze_frame call"
+              >
+                freeze_frame({ timestamp: 300 })
+              </button>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call='filter_by_vibe({ description: "most trustworthy" })'
+                aria-label="Copy filter_by_vibe call"
+              >
+                filter_by_vibe({ description: "most trustworthy" })
+              </button>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="sonify_to_spectrogram()"
+                aria-label="Copy sonify_to_spectrogram call"
+              >
+                sonify_to_spectrogram()
+              </button>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="audit_truth()"
+                aria-label="Copy audit_truth call"
+              >
+                audit_truth()
+              </button>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="align_quantum_lock()"
+                aria-label="Copy align_quantum_lock call"
+              >
+                align_quantum_lock()
+              </button>
+            </div>
+            <p class="explain-foot">
+              Judges: open this URL in the ChatGPT in-app browser, or Chrome
+              Canary with <code>chrome://flags/#enable-webmcp</code>. On phones,
+              tap to play audio (autoplay is blocked) and expect a coarser canvas
+              than a desktop GPU. Shared certificate links
+              (<code>?code=&amp;sig=</code>) render without WebMCP.
+            </p>
+          </details>
         </section>
       </main>
 
