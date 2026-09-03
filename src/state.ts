@@ -60,14 +60,12 @@ export const LOCK_TITLES: Record<VaultLockId, string> = {
 };
 
 export const LOCK_DESCS: Record<VaultLockId, string> = {
-  blur: "High-frame-rate canvas hides a digit. Human spots the glitch, agent freezes the frame.",
-  swarm:
-    "Lookalikes flood the grid. Agent narrows the swarm, human picks the real control by judgment.",
-  whisper:
-    "Ultrasonic tone hides a digit. Agent renders the spectrogram, human reads it and submits.",
-  lie: "The display and the ledger disagree. Agent audits, human weighs the evidence and decides.",
+  blur: "Agent: freeze the frame. Human: perceive the hidden detail.",
+  swarm: "Agent: narrow the candidates. Human: choose the match.",
+  whisper: "Agent: transform the signal. Human: interpret it.",
+  lie: "Agent: audit the evidence. Human: decide whether to trust it.",
   handshake:
-    "Human drag and agent align must land within 50ms. Retries are instant.",
+    "Agent: synchronize. Human: provide the final interaction (within 50ms).",
 };
 
 /** Exact tool calls to paste to an agent. No spoiler results. */

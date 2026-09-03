@@ -59,11 +59,11 @@ HUMANLOCK is a vault with 5 locks. Each lock exploits a gap between human percep
 
 | Lock | Human | Agent (WebMCP tool) |
 | --- | --- | --- |
-| **THE BLUR** | Spots a timing glitch in a high-frame-rate canvas | `freeze_frame({ timestamp })` |
-| **THE SWARM** | Picks the real control by judgment among lookalikes (agent narrows 5000 to 12) | `filter_by_vibe({ description })` |
-| **THE WHISPER** | Reads the spectrogram and enters the digit (agent cannot submit) | `sonify_to_spectrogram()` |
-| **THE LIE** | Weighs the evidence and decides whether to trust or reject | `audit_truth()` reveals the conflicting ledger |
-| **THE HANDSHAKE** | Drags the slider in the same instant | `align_quantum_lock()` within 50ms |
+| **THE BLUR** | Perceive the hidden detail | `freeze_frame({ timestamp })` |
+| **THE SWARM** | Choose the match | `filter_by_vibe({ description })` |
+| **THE WHISPER** | Interpret the signal | `sonify_to_spectrogram()` |
+| **THE LIE** | Decide whether to trust the evidence | `audit_truth()` |
+| **THE HANDSHAKE** | Provide the final interaction | `align_quantum_lock()` within 50ms |
 
 Neither party can finish any lock solo. The point is authorization at every step, not proving you are human at the door.
 
@@ -96,7 +96,7 @@ HUMANLOCK is a primitive for the agent-mediated web: instead of asking whether a
 
 ## Built by
 
-**HUMANLOCK** by [Chitmark](https://chitmark.com). Chitmark works on trust decisions for agent-mediated actions; HUMANLOCK is our WebMCP Challenge experiment in shared agency: what it feels like to open a vault that neither of you can open alone.
+**HUMANLOCK** · an experiment by [Chitmark](https://chitmark.com). Chitmark works on trust decisions for agent-mediated actions; HUMANLOCK explores what a future agent challenge could look like when the missing capability is human participation.
 
 ## How to run
 

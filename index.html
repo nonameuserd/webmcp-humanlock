@@ -113,12 +113,8 @@
               <aside class="not-captcha" aria-label="Not a CAPTCHA">
                 <p class="not-captcha-kicker">Not a CAPTCHA</p>
                 <p class="not-captcha-lead">
-                  A CAPTCHA asks &ldquo;are you human?&rdquo; HUMANLOCK asks
-                  &ldquo;what can only you do?&rdquo;
-                </p>
-                <p class="not-captcha-body">
-                  The agent is not proving humanity. The human is not imitating
-                  a machine. Each brings what the other cannot.
+                  A CAPTCHA asks &ldquo;are you human?&rdquo;<br />
+                  HUMANLOCK asks &ldquo;what can only you do?&rdquo;
                 </p>
               </aside>
               <div class="agent-prompt">
@@ -171,7 +167,16 @@
             >
               <span class="lock-index">01</span>
               <h3>THE BLUR</h3>
-              <p>High-frame-rate flash, freeze to reveal</p>
+              <dl class="lock-roles">
+                <div>
+                  <dt>Agent</dt>
+                  <dd>freeze the frame</dd>
+                </div>
+                <div>
+                  <dt>Human</dt>
+                  <dd>perceive the hidden detail</dd>
+                </div>
+              </dl>
               <button
                 type="button"
                 class="lock-call"
@@ -189,7 +194,16 @@
             >
               <span class="lock-index">02</span>
               <h3>THE SWARM</h3>
-              <p>Agent narrows lookalikes, you pick one</p>
+              <dl class="lock-roles">
+                <div>
+                  <dt>Agent</dt>
+                  <dd>narrow the candidates</dd>
+                </div>
+                <div>
+                  <dt>Human</dt>
+                  <dd>choose the match</dd>
+                </div>
+              </dl>
               <button
                 type="button"
                 class="lock-call"
@@ -207,7 +221,16 @@
             >
               <span class="lock-index">03</span>
               <h3>THE WHISPER</h3>
-              <p>Agent renders spectrogram, you read it</p>
+              <dl class="lock-roles">
+                <div>
+                  <dt>Agent</dt>
+                  <dd>transform the signal</dd>
+                </div>
+                <div>
+                  <dt>Human</dt>
+                  <dd>interpret it</dd>
+                </div>
+              </dl>
               <button
                 type="button"
                 class="lock-call"
@@ -225,7 +248,16 @@
             >
               <span class="lock-index">04</span>
               <h3>THE LIE</h3>
-              <p>Agent audits, you decide whom to trust</p>
+              <dl class="lock-roles">
+                <div>
+                  <dt>Agent</dt>
+                  <dd>audit the evidence</dd>
+                </div>
+                <div>
+                  <dt>Human</dt>
+                  <dd>decide whether to trust it</dd>
+                </div>
+              </dl>
               <button
                 type="button"
                 class="lock-call"
@@ -243,7 +275,16 @@
             >
               <span class="lock-index">05</span>
               <h3>THE HANDSHAKE</h3>
-              <p>50ms human and agent sync</p>
+              <dl class="lock-roles">
+                <div>
+                  <dt>Agent</dt>
+                  <dd>synchronize</dd>
+                </div>
+                <div>
+                  <dt>Human</dt>
+                  <dd>provide the final interaction</dd>
+                </div>
+              </dl>
               <button
                 type="button"
                 class="lock-call"
@@ -312,14 +353,19 @@
 
         <!-- How it works -->
         <section class="explain">
-          <h3>How WebMCP makes this possible</h3>
+          <p class="explain-kicker">How WebMCP makes this possible</p>
+          <h3>Each lock registers exactly one WebMCP tool</h3>
+          <p class="explain-lead">
+            When the lock changes, the available agent capability changes with
+            it.
+          </p>
           <p>
-            Each lock registers one
-            <code>document.modelContext.registerTool()</code> tool. The agent
+            Each lock calls
+            <code>document.modelContext.registerTool()</code>. The agent
             discovers it via <code>getTools()</code> or
-            <code>toolchange</code> event, calls it with structured args, and
-            the page mutates shared DOM state. Human and agent see the same
-            vault. Neither can cheat: tools validate inputs and locks judge
+            <code>toolchange</code>, calls it with structured args, and the page
+            mutates shared DOM state. Human and agent see the same vault.
+            Neither can cheat: tools validate inputs and locks judge
             deterministically.
           </p>
           <p class="locks-copy-hint">Click to copy a call for your agent</p>
