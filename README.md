@@ -2,6 +2,37 @@
 
 **A WebMCP Challenge submission. A website that is impossible without human and agent together.**
 
+**Live demo:** [https://humanlock.pages.dev/](https://humanlock.pages.dev/)
+
+Open in the ChatGPT in-app browser or Chrome Canary with `chrome://flags/#enable-webmcp`.
+
+## WebMCP tools
+
+Each lock registers one tool via `document.modelContext.registerTool()`. Example for **THE BLUR**:
+
+```js
+document.modelContext.registerTool({
+  name: "freeze_frame",
+  description:
+    "Freeze the high-frame-rate blur canvas at a timestamp to reveal the hidden digit.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      timestamp: {
+        type: "number",
+        description: "Timestamp in ms to freeze at (glitch window 280-340ms).",
+      },
+    },
+    required: ["timestamp"],
+  },
+  execute: async (input) => {
+    /* freeze canvas at input.timestamp; return revealed digit or miss */
+  },
+});
+```
+
+The other locks expose `filter_by_vibe`, `sonify_to_spectrogram`, `audit_truth`, and `align_quantum_lock` the same way. Tools share UI state with the page; neither human nor agent can finish a lock alone.
+
 ## Inspiration
 
 We kept asking: what would a website look like if it required human and agent together, not as a gimmick but as the core mechanic?
@@ -97,6 +128,8 @@ public/
 ```
 
 ## Deployment
+
+Live: [https://humanlock.pages.dev/](https://humanlock.pages.dev/)
 
 Static site. `pnpm build` outputs to `dist/`. Set `VITE_VAULT_SEED` for a deterministic demo code.
 
