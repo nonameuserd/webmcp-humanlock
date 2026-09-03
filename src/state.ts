@@ -70,16 +70,25 @@ export const LOCK_DESCS: Record<VaultLockId, string> = {
     "Human drag and agent align must land within 50ms. Retries are instant.",
 };
 
+/** Exact tool calls to paste to an agent. No spoiler results. */
+export const LOCK_TOOL_CALLS: Record<VaultLockId, string> = {
+  blur: "freeze_frame({ timestamp: 300 })",
+  swarm: 'filter_by_vibe({ description: "most trustworthy" })',
+  whisper: "sonify_to_spectrogram()",
+  lie: "audit_truth()",
+  handshake: "align_quantum_lock()",
+};
+
 /** Copy-paste lines shown in each lock UI. Judges will not reread Devpost. */
 export const LOCK_AGENT_PROMPTS: Record<VaultLockId, string> = {
-  blur: "Tell your agent: call freeze_frame at the glitch you see (try timestamp 300).",
+  blur: "Tell your agent: freeze_frame({ timestamp: 300 }) at the glitch you see.",
   swarm:
-    'Tell your agent: call filter_by_vibe with description "most trustworthy, government certified". Then pick the real control from the candidates.',
+    'Tell your agent: filter_by_vibe({ description: "most trustworthy" }). Then pick the real control from the candidates.',
   whisper:
-    "Tell your agent: call sonify_to_spectrogram(). Then read the spectrogram yourself and type the digit.",
-  lie: "Tell your agent: call audit_truth(). Then decide whether to trust the display or the ledger.",
+    "Tell your agent: sonify_to_spectrogram(). Then read the spectrogram yourself and type the digit.",
+  lie: "Tell your agent: audit_truth(). Then decide whether to trust the display or the ledger.",
   handshake:
-    "Tell your agent: call align_quantum_lock() as you drag the slider. Retry immediately if you miss the 50ms window.",
+    "Tell your agent: align_quantum_lock() as you drag the slider. Retry immediately if you miss the 50ms window.",
 };
 
 export function generateSig(vaultCode: string): string {

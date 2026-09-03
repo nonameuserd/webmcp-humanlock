@@ -54,8 +54,10 @@
                 you open it.
               </p>
               <div class="agent-prompt">
-                <span>Paste this to your agent after you click on Enter vault button</span>
-                <code id="hero-prompt">List my WebMCP tools and help me open this vault. Start with THE BLUR, call freeze_frame at the glitch.</code>
+                <span>Paste this to your agent after you click Enter vault</span>
+                <code id="hero-prompt"
+                  >List my WebMCP tools and help me open this vault. Start with THE BLUR: freeze_frame({ timestamp: 300 })</code
+                >
                 <button
                   id="btn-copy-prompt"
                   type="button"
@@ -101,6 +103,14 @@
               <span class="lock-index">01</span>
               <h3>THE BLUR</h3>
               <p>High-frame-rate flash, freeze to reveal</p>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="freeze_frame({ timestamp: 300 })"
+                aria-label="Copy freeze_frame call"
+              >
+                freeze_frame({ timestamp: 300 })
+              </button>
               <span class="lock-status">LOCKED</span>
             </div>
             <div
@@ -111,6 +121,14 @@
               <span class="lock-index">02</span>
               <h3>THE SWARM</h3>
               <p>Agent narrows lookalikes, you pick one</p>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call='filter_by_vibe({ description: "most trustworthy" })'
+                aria-label="Copy filter_by_vibe call"
+              >
+                filter_by_vibe({ description: "most trustworthy" })
+              </button>
               <span class="lock-status">LOCKED</span>
             </div>
             <div
@@ -121,6 +139,14 @@
               <span class="lock-index">03</span>
               <h3>THE WHISPER</h3>
               <p>Agent renders spectrogram, you read it</p>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="sonify_to_spectrogram()"
+                aria-label="Copy sonify_to_spectrogram call"
+              >
+                sonify_to_spectrogram()
+              </button>
               <span class="lock-status">LOCKED</span>
             </div>
             <div
@@ -131,6 +157,14 @@
               <span class="lock-index">04</span>
               <h3>THE LIE</h3>
               <p>Agent audits, you decide whom to trust</p>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="audit_truth()"
+                aria-label="Copy audit_truth call"
+              >
+                audit_truth()
+              </button>
               <span class="lock-status">LOCKED</span>
             </div>
             <div
@@ -141,6 +175,14 @@
               <span class="lock-index">05</span>
               <h3>THE HANDSHAKE</h3>
               <p>50ms human and agent sync</p>
+              <button
+                type="button"
+                class="lock-call"
+                data-copy-call="align_quantum_lock()"
+                aria-label="Copy align_quantum_lock call"
+              >
+                align_quantum_lock()
+              </button>
               <span class="lock-status">LOCKED</span>
             </div>
           </div>
@@ -212,14 +254,46 @@
             deterministically.
           </p>
           <div class="explain-code">
-            <code>freeze_frame({ timestamp: 300 }) -> Revealed digit 7</code>
-            <code
-              >filter_by_vibe({ description: "most trustworthy" }) -> 12
-              candidates</code
+            <button
+              type="button"
+              class="lock-call"
+              data-copy-call="freeze_frame({ timestamp: 300 })"
+              aria-label="Copy freeze_frame call"
             >
-            <code>sonify_to_spectrogram() -> image with code 42</code>
-            <code>audit_truth() -> Real: $999 vs Display: $10</code>
-            <code>align_quantum_lock({}) -> 12ms window, success</code>
+              freeze_frame({ timestamp: 300 })
+            </button>
+            <button
+              type="button"
+              class="lock-call"
+              data-copy-call='filter_by_vibe({ description: "most trustworthy" })'
+              aria-label="Copy filter_by_vibe call"
+            >
+              filter_by_vibe({ description: "most trustworthy" })
+            </button>
+            <button
+              type="button"
+              class="lock-call"
+              data-copy-call="sonify_to_spectrogram()"
+              aria-label="Copy sonify_to_spectrogram call"
+            >
+              sonify_to_spectrogram()
+            </button>
+            <button
+              type="button"
+              class="lock-call"
+              data-copy-call="audit_truth()"
+              aria-label="Copy audit_truth call"
+            >
+              audit_truth()
+            </button>
+            <button
+              type="button"
+              class="lock-call"
+              data-copy-call="align_quantum_lock()"
+              aria-label="Copy align_quantum_lock call"
+            >
+              align_quantum_lock()
+            </button>
           </div>
           <p class="explain-foot">
             Judges: open this URL in the ChatGPT in-app browser, or Chrome

@@ -289,6 +289,33 @@ code,
   border: 1px solid var(--border);
 }
 
+.lock-call {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  text-align: left;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--accent);
+  background: #0a0a0f;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+}
+
+.lock-call:hover,
+.lock-call:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.explain-code .lock-call {
+  font-size: 11px;
+  padding: 8px 10px;
+}
+
 /* stage */
 .stage {
   margin-top: 22px;

@@ -6,6 +6,7 @@ import {
   LOCK_AGENT_PROMPTS,
   LOCK_DESCS,
   LOCK_TITLES,
+  LOCK_TOOL_CALLS,
   nextLock,
   progressText,
 } from "../src/state";
@@ -69,11 +70,17 @@ describe("vault state", () => {
     expect(sig.endsWith("_12345")).toBe(true);
   });
 
-  it("exposes copy-paste agent prompts for every lock", () => {
+  it("exposes copy-paste agent prompts and tool calls for every lock", () => {
     for (const id of ALL) {
       expect(LOCK_TITLES[id].startsWith("THE ")).toBe(true);
       expect(LOCK_DESCS[id].length).toBeGreaterThan(10);
       expect(LOCK_AGENT_PROMPTS[id]).toMatch(/Tell your agent:/);
+      expect(LOCK_TOOL_CALLS[id]).toMatch(/^[a-z_]+\(/);
     }
+    expect(LOCK_TOOL_CALLS.blur).toBe("freeze_frame({ timestamp: 300 })");
+    expect(LOCK_TOOL_CALLS.swarm).toContain("most trustworthy");
+    expect(LOCK_TOOL_CALLS.whisper).toBe("sonify_to_spectrogram()");
+    expect(LOCK_TOOL_CALLS.lie).toBe("audit_truth()");
+    expect(LOCK_TOOL_CALLS.handshake).toBe("align_quantum_lock()");
   });
 });

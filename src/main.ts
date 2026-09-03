@@ -8,6 +8,7 @@ import {
   LOCK_TITLES,
   LOCK_DESCS,
   LOCK_AGENT_PROMPTS,
+  LOCK_TOOL_CALLS,
   progressText,
   generateSig,
 } from "./state";
@@ -188,16 +189,18 @@ function mountLock(id: VaultLockId): void {
   stageDesc.textContent = LOCK_DESCS[id];
   const hint = document.getElementById("stage-hint");
   if (hint) {
+    const call = LOCK_TOOL_CALLS[id];
     const prompt = LOCK_AGENT_PROMPTS[id];
     hint.innerHTML = "";
     const pre = document.createElement("code");
-    pre.textContent = prompt;
+    pre.textContent = `${prompt} Paste: ${call}`;
     const copyBtn = document.createElement("button");
     copyBtn.type = "button";
     copyBtn.className = "btn btn--ghost";
-    copyBtn.textContent = "Copy prompt";
+    copyBtn.dataset.idleLabel = "Copy call";
+    copyBtn.textContent = "Copy call";
     copyBtn.addEventListener("click", () => {
-      void copyWithFeedback(copyBtn, prompt);
+      void copyWithFeedback(copyBtn, call);
     });
     hint.append(pre, copyBtn);
   }
@@ -344,6 +347,15 @@ document.getElementById("btn-copy-prompt")?.addEventListener("click", () => {
   if (!(btn instanceof HTMLButtonElement)) return;
   const text = el?.textContent?.replace(/\s+/g, " ").trim() ?? "";
   void copyWithFeedback(btn, text);
+});
+
+document.querySelectorAll("[data-copy-call]").forEach((el) => {
+  if (!(el instanceof HTMLButtonElement)) return;
+  el.addEventListener("click", () => {
+    const call = el.dataset.copyCall ?? el.textContent?.trim() ?? "";
+    el.dataset.idleLabel = el.textContent?.trim() || call;
+    void copyWithFeedback(el, call);
+  });
 });
 document.getElementById("btn-debug")?.addEventListener("click", () => {
   if (hasWebMCP()) return;
