@@ -124,26 +124,103 @@ code,
   border-radius: 16px;
   padding: 24px;
 }
-.vault-ring {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  border: 6px solid #222;
+.vault-lock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin: 0 auto;
+}
+.vault-lock-scene {
+  position: relative;
+  width: 220px;
+  height: 240px;
   display: grid;
   place-items: center;
+}
+.vault-lock-glow {
+  position: absolute;
+  inset: 8px 12px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 72% 22%, rgba(51, 102, 255, 0.42), transparent 52%),
+    radial-gradient(circle at 18% 78%, rgba(0, 255, 136, 0.28), transparent 48%);
+  filter: blur(10px);
+  opacity: 0.9;
+}
+.vault-lock-padlock {
   position: relative;
-  background: radial-gradient(circle at 30% 30%, #1a1a28, #08080c);
+  z-index: 1;
+  width: 128px;
+  height: auto;
+  color: rgba(255, 255, 255, 0.42);
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.45));
+  transition:
+    color 0.35s ease,
+    transform 0.35s ease;
+}
+.vault-lock-shackle {
+  transform-origin: 60px 74px;
+  transition: transform 0.35s ease;
+}
+.vault-fingerprint-badge {
+  position: absolute;
+  z-index: 2;
+  bottom: 26px;
+  right: 22px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #101018;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+}
+.vault-fingerprint {
+  width: 36px;
+  height: 36px;
+}
+.vault-fingerprint path {
+  fill: none;
+  stroke: #ff6b7a;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  transition: stroke 0.35s ease;
+}
+.vault-lock.decaying {
+  animation: vault-lock-pulse 1s infinite;
+}
+.vault-lock.decaying .vault-lock-padlock {
+  filter: grayscale(0.5) brightness(0.75) drop-shadow(0 10px 28px rgba(0, 0, 0, 0.45));
+}
+.vault-lock.unlocked .vault-lock-glow {
+  background:
+    radial-gradient(circle at 50% 40%, rgba(0, 255, 136, 0.35), transparent 55%),
+    radial-gradient(circle at 72% 22%, rgba(51, 102, 255, 0.25), transparent 52%);
+}
+.vault-lock.unlocked .vault-lock-padlock {
+  color: rgba(255, 255, 255, 0.58);
+}
+.vault-lock.unlocked .vault-lock-shackle {
+  transform: rotate(-14deg) translate(-2px, -4px);
+}
+.vault-lock.unlocked .vault-fingerprint path {
+  stroke: var(--accent);
+}
+.vault-lock.unlocked .vault-fingerprint-badge {
   box-shadow:
-    0 0 40px rgba(0, 255, 136, 0.08),
-    inset 0 0 20px rgba(0, 0, 0, 0.8);
+    0 8px 24px rgba(0, 0, 0, 0.55),
+    0 0 20px rgba(0, 255, 136, 0.25);
 }
-.vault-ring.decaying {
-  animation: pulse 1s infinite;
-  filter: grayscale(0.6) brightness(0.7);
-}
-.vault-ring.unlocked {
-  border-color: var(--ok);
-  box-shadow: 0 0 60px rgba(0, 255, 136, 0.4);
+@keyframes vault-lock-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
 }
 .vault-ring-inner {
   text-align: center;
@@ -765,8 +842,15 @@ code,
   .vault-display {
     grid-template-columns: 1fr;
   }
-  .vault-ring {
+  .vault-lock {
     margin: 0 auto;
+  }
+  .vault-lock-scene {
+    width: 200px;
+    height: 220px;
+  }
+  .vault-lock-padlock {
+    width: 112px;
   }
   .locks-overview {
     grid-template-columns: 1fr 1fr;

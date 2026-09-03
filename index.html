@@ -45,7 +45,57 @@
         <!-- Vault hero -->
         <section class="vault-hero">
           <div class="vault-display">
-            <div id="vault-ring" class="vault-ring">
+            <div
+              id="vault-ring"
+              class="vault-lock"
+              role="img"
+              aria-labelledby="vault-status-text"
+            >
+              <div class="vault-lock-scene" aria-hidden="true">
+                <div class="vault-lock-glow"></div>
+                <svg
+                  class="vault-lock-padlock"
+                  viewBox="0 0 120 160"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    class="vault-lock-shackle"
+                    d="M36 74V48a24 24 0 0 1 48 0v26"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="12"
+                    stroke-linecap="round"
+                  />
+                  <rect
+                    class="vault-lock-body"
+                    x="22"
+                    y="74"
+                    width="76"
+                    height="82"
+                    rx="16"
+                    fill="currentColor"
+                  />
+                </svg>
+                <div class="vault-fingerprint-badge">
+                  <svg
+                    class="vault-fingerprint"
+                    viewBox="0 0 64 64"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path d="M32 6C17 6 7 18 7 32" />
+                    <path d="M32 12C21 12 13 22 13 34" />
+                    <path d="M32 18C25 18 19 28 19 38" />
+                    <path d="M32 24C28 24 25 32 25 42" />
+                    <path d="M32 30C30 30 29 36 29 44" />
+                    <path d="M46 10c9 7 13 18 13 30" />
+                    <path d="M50 18c5 5 8 14 8 24" />
+                    <path d="M18 10C9 17 5 28 5 40" />
+                    <path d="M14 18C9 23 6 32 6 42" />
+                  </svg>
+                </div>
+              </div>
               <div class="vault-ring-inner">
                 <span id="vault-status-text" class="vault-status-text"
                   >LOCKED</span
