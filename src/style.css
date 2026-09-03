@@ -165,8 +165,34 @@ code,
 }
 .vault-subtitle {
   color: var(--muted);
-  margin: 10px 0 18px;
+  margin: 10px 0 14px;
   line-height: 1.5;
+}
+.not-captcha {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-left: 2px solid var(--accent);
+  background: rgba(0, 255, 136, 0.04);
+}
+.not-captcha-kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.not-captcha-lead {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.not-captcha-body {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 .agent-prompt {
   display: grid;

@@ -41,7 +41,13 @@ HUMANLOCK is our answer. It borrows the tension of *Keep Talking and Nobody Expl
 
 Human alone fails. Agent alone fails. Together, you open it.
 
-HUMANLOCK explores what happens when the web does not ask "human or agent?" but asks "what should each of them be responsible for?" It is inspired by Chitmark's allow / challenge / deny trust model: an experiment in what a "challenge" could feel like when the missing ingredient is a human.
+### Not a CAPTCHA
+
+A CAPTCHA asks "are you human?" HUMANLOCK asks "what can only you do?"
+
+The agent is not proving humanity. The human is not imitating a machine. Each brings what the other cannot.
+
+HUMANLOCK is a primitive for the agent-mediated web: the site does not ask who acted, it defines what only the human can do and what only the agent can do. It is inspired by Chitmark's allow / challenge / deny trust model: an experiment in what a "challenge" could feel like when the missing ingredient is a human.
 
 ## What it does
 
@@ -55,7 +61,7 @@ HUMANLOCK is a vault with 5 locks. Each lock exploits a gap between human percep
 | **THE LIE** | Weighs the evidence and decides whether to trust or reject | `audit_truth()` reveals the conflicting ledger |
 | **THE HANDSHAKE** | Drags the slider in the same instant | `align_quantum_lock()` within 50ms |
 
-This is not a CAPTCHA. A CAPTCHA verifies humanness once and then lets the agent act alone. Here neither party can finish any lock solo, and the point is authorization at every step, not proving you are human at the door.
+Neither party can finish any lock solo. The point is authorization at every step, not proving you are human at the door.
 
 Stop cooperating for 30 seconds and the vault decays. Clear all five and you mint a co-signed HUMANLOCK certificate (shareable URL with human and agent signatures). Certificate links render without WebMCP.
 
@@ -82,7 +88,7 @@ Each lock is an isolated module (`blur`, `swarm`, `whisper`, `lie`, `handshake`)
 
 ## What's next
 
-We're exploring a reusable pattern from this: a "human authorization" step for consequential actions (publishing, permission changes, data deletion) where the agent prepares and verifies, and the site enforces that a human decides. The vault is the playground; the primitive is the point.
+HUMANLOCK is a primitive for the agent-mediated web: instead of asking whether an action belongs to a human or an agent, the site defines what each is responsible for. We are exploring a reusable "human authorization" step for consequential actions (publishing, permission changes, data deletion) where the agent prepares and verifies, and the site enforces that a human decides. The vault is the playground; the primitive is the point.
 
 ## Built by
 
