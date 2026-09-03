@@ -154,26 +154,34 @@ const copyResetTimers = new WeakMap<HTMLButtonElement, number>();
  * Copy text and show a temporary Copied state on the button.
  * Tenant isolation: clipboard is local to this browser tab only.
  */
+function copyHintTarget(button: HTMLButtonElement): HTMLElement {
+  const hint = button.querySelector(".lock-call-hint");
+  return hint instanceof HTMLElement ? hint : button;
+}
+
 async function copyWithFeedback(
   button: HTMLButtonElement,
   text: string,
 ): Promise<void> {
-  const idleLabel = button.dataset.idleLabel ?? "Copy prompt";
-  button.dataset.idleLabel = idleLabel;
+  const target = copyHintTarget(button);
+  const idleLabel =
+    target.dataset.idleLabel ??
+    (target === button ? "Copy prompt" : "Copy");
+  target.dataset.idleLabel = idleLabel;
   try {
     await navigator.clipboard.writeText(text);
-    button.textContent = "Copied";
+    target.textContent = "Copied";
     button.classList.add("btn--copied");
     button.setAttribute("aria-live", "polite");
     const prev = copyResetTimers.get(button);
     if (prev) window.clearTimeout(prev);
     const id = window.setTimeout(() => {
-      button.textContent = idleLabel;
+      target.textContent = idleLabel;
       button.classList.remove("btn--copied");
     }, 2000);
     copyResetTimers.set(button, id);
   } catch {
-    button.textContent = "Copy failed";
+    target.textContent = "Copy failed";
     button.classList.remove("btn--copied");
   }
 }
@@ -351,9 +359,15 @@ document.getElementById("btn-copy-prompt")?.addEventListener("click", () => {
 
 document.querySelectorAll("[data-copy-call]").forEach((el) => {
   if (!(el instanceof HTMLButtonElement)) return;
+  if (!el.querySelector(".lock-call-hint")) {
+    const hint = document.createElement("span");
+    hint.className = "lock-call-hint";
+    hint.textContent = "Copy";
+    el.append(hint);
+  }
+  el.title = "Copy for your agent";
   el.addEventListener("click", () => {
-    const call = el.dataset.copyCall ?? el.textContent?.trim() ?? "";
-    el.dataset.idleLabel = el.textContent?.trim() || call;
+    const call = el.dataset.copyCall ?? "";
     void copyWithFeedback(el, call);
   });
 });

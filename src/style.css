@@ -289,8 +289,19 @@ code,
   border: 1px solid var(--border);
 }
 
+.locks-copy-hint {
+  margin: 18px 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--armed);
+}
+
 .lock-call {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
   margin-top: 10px;
   text-align: left;
@@ -305,15 +316,33 @@ code,
   cursor: pointer;
 }
 
+.lock-call-hint {
+  flex-shrink: 0;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .lock-call:hover,
 .lock-call:focus-visible {
   border-color: var(--accent);
   outline: none;
 }
 
+.lock-call:hover .lock-call-hint,
+.lock-call:focus-visible .lock-call-hint,
+.lock-call.btn--copied .lock-call-hint {
+  color: var(--accent);
+}
+
 .explain-code .lock-call {
   font-size: 11px;
   padding: 8px 10px;
+}
+
+.explain .locks-copy-hint {
+  margin: 14px 0 8px;
 }
 
 /* stage */
