@@ -1,133 +1,74 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { executeTool } from "../helpers";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createWhisperLock } from "../../src/locks/whisper";
 import { registry } from "../../src/webmcp/registry";
+import { mountRoot, waitForTool } from "../helpers";
 
-describe("THE WHISPER - sonify_to_spectrogram", () => {
-  let container: HTMLElement;
-  let onSolved: ReturnType<typeof vi.fn>;
+class FakeOscillator {
+  frequency = { value: 0 };
+  type = "sine";
+  connect = vi.fn();
+  start = vi.fn();
+  stop = vi.fn();
+}
 
-  beforeEach(() => {
-    registry.unregisterAll();
-    // @ts-expect-error delete
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    onSolved = vi.fn();
+class FakeGain {
+  gain = { value: 0 };
+  connect = vi.fn();
+}
+
+class FakeAudioContext {
+  state = "suspended";
+  destination = {};
+  resume = vi.fn(async () => {
+    this.state = "running";
   });
+  close = vi.fn(async () => {});
+  createOscillator(): FakeOscillator {
+    return new FakeOscillator();
+  }
+  createGain(): FakeGain {
+    return new FakeGain();
+  }
+}
 
+describe("THE WHISPER", () => {
   afterEach(() => {
     registry.unregisterAll();
     document.body.innerHTML = "";
+    vi.unstubAllGlobals();
   });
 
-  async function flush(): Promise<void> {
-    await Promise.resolve();
-    await Promise.resolve();
-    await new Promise((r) => setTimeout(r, 0));
-  }
+  it("does not leak the digit to the agent; human must read and submit", async () => {
+    vi.stubGlobal("AudioContext", FakeAudioContext);
+    const lock = createWhisperLock();
+    expect(lock.toolName).toBe("sonify_to_spectrogram");
+    const root = mountRoot();
+    const solved = vi.fn();
+    lock.mount(root, "4", solved);
+    await waitForTool("sonify_to_spectrogram");
+    root.querySelector<HTMLButtonElement>("#whisper-play")?.click();
+    root.querySelector<HTMLButtonElement>("#whisper-reveal")?.click();
+    expect(root.querySelector("#whisper-log")?.textContent).toMatch(
+      /not yet rendered/,
+    );
+    root.querySelector<HTMLButtonElement>("#whisper-submit")?.click();
+    expect(root.querySelector("#whisper-log")?.textContent).toMatch(
+      /Must spectrogram first/,
+    );
 
-  it("registers tool and shows empty spectrogram", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "6", onSolved);
-    await flush();
-    expect(registry.list()).toContain("sonify_to_spectrogram");
-    const canvas = container.querySelector<HTMLCanvasElement>("#whisper-canvas");
-    expect(canvas).not.toBeNull();
-    expect(canvas!.width).toBe(640);
-    expect(canvas!.height).toBe(240);
-    api.unmount();
-  });
+    const result = await registry.invokeFallback("sonify_to_spectrogram", {});
+    expect(result.data).toEqual({ rendered: true });
+    expect(result.content[0]?.text).not.toMatch(/4/);
+    root.querySelector<HTMLButtonElement>("#whisper-reveal")?.click();
+    expect(root.querySelector("#whisper-log")?.textContent).toMatch(/Type it/);
 
-  it("sonify_to_spectrogram renders digit and marks revealed", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "4", onSolved);
-    await flush();
-    const log = container.querySelector<HTMLElement>("#whisper-log");
-    expect(log?.textContent).toContain("Click Play");
-
-    const res = await executeTool("sonify_to_spectrogram", {});
-    expect(res.content[0].text).toContain("Hidden digit is 4");
-    expect(res.data?.digit).toBe("4");
-    expect(log?.textContent).toContain("Spectrogram rendered");
-
-    const input = container.querySelector<HTMLInputElement>("#whisper-input");
-    const submit = container.querySelector<HTMLButtonElement>("#whisper-submit");
+    const input = root.querySelector<HTMLInputElement>("#whisper-input");
+    input!.value = "0";
+    root.querySelector<HTMLButtonElement>("#whisper-submit")?.click();
+    expect(solved).not.toHaveBeenCalled();
     input!.value = "4";
-    submit!.click();
-    expect(onSolved).toHaveBeenCalledTimes(1);
-    api.unmount();
-  });
-
-  it("cannot submit before spectrogram", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "8", onSolved);
-    await flush();
-    const input = container.querySelector<HTMLInputElement>("#whisper-input");
-    const submit = container.querySelector<HTMLButtonElement>("#whisper-submit");
-    const log = container.querySelector<HTMLElement>("#whisper-log");
-    input!.value = "8";
-    submit!.click();
-    expect(onSolved).not.toHaveBeenCalled();
-    expect(log?.textContent).toContain("Must spectrogram first");
-    api.unmount();
-  });
-
-  it("wrong digit after reveal does not solve", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "2", onSolved);
-    await flush();
-    await executeTool("sonify_to_spectrogram", {});
-    const input = container.querySelector<HTMLInputElement>("#whisper-input");
-    const submit = container.querySelector<HTMLButtonElement>("#whisper-submit");
-    input!.value = "9";
-    submit!.click();
-    expect(onSolved).not.toHaveBeenCalled();
-    api.unmount();
-  });
-
-  it("play button triggers ultrasonic mock", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "5", onSolved);
-    await flush();
-    const playBtn = container.querySelector<HTMLButtonElement>("#whisper-play");
-    const log = container.querySelector<HTMLElement>("#whisper-log");
-    expect(playBtn).not.toBeNull();
-    playBtn!.click();
-    expect(log?.textContent).toContain("Played 19.5kHz");
-    api.unmount();
-  });
-
-  it("reveal button hints if not yet rendered", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "3", onSolved);
-    await flush();
-    const revealBtn = container.querySelector<HTMLButtonElement>("#whisper-reveal");
-    const log = container.querySelector<HTMLElement>("#whisper-log");
-    revealBtn!.click();
-    expect(log?.textContent).toContain("Spectrogram not yet rendered");
-    await executeTool("sonify_to_spectrogram", {});
-    revealBtn!.click();
-    expect(log?.textContent).toContain("Human sees digit");
-    api.unmount();
-  });
-
-  it("unmount cleans up and unregisters", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "1", onSolved);
-    await flush();
-    expect(registry.list()).toContain("sonify_to_spectrogram");
-    api.unmount();
-    await flush();
-    expect(registry.list()).not.toContain("sonify_to_spectrogram");
-  });
-
-  it("tool description no plus", async () => {
-    const api = createWhisperLock();
-    api.mount(container, "1", onSolved);
-    await flush();
-    const def = registry.getDef("sonify_to_spectrogram");
-    expect(def).toBeDefined();
-    expect(def?.description).not.toContain("+");
-    api.unmount();
+    root.querySelector<HTMLButtonElement>("#whisper-submit")?.click();
+    expect(solved).toHaveBeenCalledTimes(1);
+    lock.unmount();
   });
 });

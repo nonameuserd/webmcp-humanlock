@@ -118,7 +118,7 @@ export function createBlurLock(): BlurApi {
             <button id="blur-submit" class="btn btn--primary">Unlock</button>
             <button id="blur-unfreeze" class="btn btn--ghost">Unfreeze</button>
           </div>
-          <p class="hint">Human: watch for red GLITCH border. Tell agent: call <code>freeze_frame({ timestamp: 300 })</code> near 280-340ms.</p>
+          <p class="hint">Human: watch for the red GLITCH border. Copy-paste to your agent: <code>call freeze_frame at the glitch you see (try timestamp 300)</code>.</p>
           <div id="blur-log" class="lock-log"></div>
         </div>
       `;
@@ -133,7 +133,7 @@ export function createBlurLock(): BlurApi {
         .register({
           name: toolName,
           description:
-            "Freeze the 240fps blur canvas at a timestamp to reveal the hidden digit. Glitch appears only 280-340ms in each 600ms loop. Human must spot the glitch, agent must freeze precisely.",
+            "Freeze the high-frame-rate blur canvas at a timestamp to reveal the hidden digit. Glitch appears only 280-340ms in each 600ms loop. Human must spot the glitch, agent must freeze precisely.",
           inputSchema: {
             type: "object",
             properties: {
@@ -213,7 +213,7 @@ export function createBlurLock(): BlurApi {
       submit.addEventListener("click", () => {
         if (!revealed) {
           updateLog(
-            "Must freeze_frame first. Ask the agent to call freeze_frame({ timestamp: 300 }) near the glitch.",
+            "Must freeze_frame first. Agent has not revealed digit yet.",
           );
           return;
         }

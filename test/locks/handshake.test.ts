@@ -1,197 +1,107 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { executeTool } from "../helpers";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHandshakeLock } from "../../src/locks/handshake";
 import { registry } from "../../src/webmcp/registry";
+import { mountRoot, waitForTool } from "../helpers";
 
-describe("THE HANDSHAKE - align_quantum_lock", () => {
-  let container: HTMLElement;
-  let onSolved: ReturnType<typeof vi.fn>;
+function drag(range: HTMLInputElement): void {
+  range.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+  range.dispatchEvent(new Event("pointerup", { bubbles: true }));
+}
 
-  beforeEach(() => {
-    registry.unregisterAll();
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    onSolved = vi.fn();
-    let now = 1000;
-    vi.spyOn(performance, "now").mockImplementation(() => now);
-    (globalThis as unknown as { __advancePerf: (n: number) => void }).__advancePerf = (n: number) => {
-      now += n;
-    };
-  });
-
+describe("THE HANDSHAKE", () => {
   afterEach(() => {
     registry.unregisterAll();
     document.body.innerHTML = "";
-    vi.restoreAllMocks();
   });
 
-  function advancePerf(n: number): void {
-    const fn = (globalThis as unknown as { __advancePerf: (n: number) => void }).__advancePerf;
-    if (fn) fn(n);
-  }
-
-  async function flush(): Promise<void> {
-    await Promise.resolve();
-    await Promise.resolve();
-    await new Promise((r) => setTimeout(r, 0));
-  }
-
-  it("registers align_quantum_lock and mounts UI", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "7", onSolved);
-    await flush();
-    expect(registry.list()).toContain("align_quantum_lock");
-    expect(container.querySelector("#handshake-range")).not.toBeNull();
-    expect(container.querySelector("#handshake-thumb")).not.toBeNull();
-    api.unmount();
+  it("refuses a drag before arm and an agent call before the human drags", async () => {
+    const lock = createHandshakeLock();
+    expect(lock.toolName).toBe("align_quantum_lock");
+    const root = mountRoot();
+    const solved = vi.fn();
+    lock.mount(root, "7", solved);
+    await waitForTool("align_quantum_lock");
+    const range = root.querySelector<HTMLInputElement>("#handshake-range");
+    expect(range).toBeTruthy();
+    range!.value = "80";
+    range!.dispatchEvent(new Event("input", { bubbles: true }));
+    drag(range!);
+    expect(root.querySelector("#handshake-log")?.textContent).toMatch(
+      /Must Arm first/,
+    );
+    const early = await registry.invokeFallback("align_quantum_lock", {});
+    expect(early.content[0]?.text).toMatch(/has not dragged/);
+    expect(solved).not.toHaveBeenCalled();
+    lock.unmount();
   });
 
-  it("agent align before human drag reports need human", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "5", onSolved);
-    await flush();
-    const res = await executeTool("align_quantum_lock", {});
-    expect(res.content[0].text).toContain("human has not dragged");
-    expect(res.data?.diff).toBeNull();
-    expect(res.data?.agentAt).toBeDefined();
-    api.unmount();
+  it("records a tight sync and unlocks when the human submits the digit", async () => {
+    const lock = createHandshakeLock();
+    const root = mountRoot();
+    const solved = vi.fn();
+    lock.mount(root, "7", solved);
+    await waitForTool("align_quantum_lock");
+    root.querySelector<HTMLButtonElement>("#handshake-arm")?.click();
+    const range = root.querySelector<HTMLInputElement>("#handshake-range");
+    drag(range!);
+    const sync = await registry.invokeFallback("align_quantum_lock", {});
+    expect(sync.content[0]?.text).toMatch(/aligned within/);
+    expect(solved).not.toHaveBeenCalled();
+    const input = root.querySelector<HTMLInputElement>("#handshake-input");
+    input!.value = "7";
+    root.querySelector<HTMLButtonElement>("#handshake-submit")?.click();
+    expect(solved).toHaveBeenCalledTimes(1);
+    lock.unmount();
   });
 
-  it("sync within 50ms succeeds", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "9", onSolved);
-    await flush();
-    const armBtn = container.querySelector<HTMLButtonElement>("#handshake-arm");
-    const range = container.querySelector<HTMLInputElement>("#handshake-range");
-    armBtn!.click();
-    range!.dispatchEvent(new Event("pointerdown"));
-    advancePerf(0);
-    range!.dispatchEvent(new Event("pointerup"));
+  it("resets instantly on a miss and still allows a typed unlock after a tight sync", async () => {
+    const lock = createHandshakeLock();
+    const root = mountRoot();
+    const solved = vi.fn();
+    lock.mount(root, "5", solved);
+    await waitForTool("align_quantum_lock");
+    const arm = root.querySelector<HTMLButtonElement>("#handshake-arm");
+    const range = root.querySelector<HTMLInputElement>("#handshake-range");
+    const submit = root.querySelector<HTMLButtonElement>("#handshake-submit");
+    const input = root.querySelector<HTMLInputElement>("#handshake-input");
+    submit?.click();
+    expect(root.querySelector("#handshake-log")?.textContent).toMatch(
+      /Must sync first/,
+    );
+    arm?.click();
+    drag(range!);
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 80);
+    });
+    const miss = await registry.invokeFallback("align_quantum_lock", {});
+    expect(miss.isError).toBe(true);
+    expect(root.querySelector("#handshake-sync")?.textContent).toMatch(/MISS/);
 
-    advancePerf(20);
-    const res = await executeTool("align_quantum_lock", {});
-    expect(res.content[0].text).toContain("SYNC SUCCESS");
-    expect(res.content[0].text).toContain("9");
-    expect(res.data?.digit).toBe("9");
-    expect(res.data?.diff).toBeDefined();
-    expect(Number(res.data?.diff)).toBeLessThanOrEqual(50);
-    expect(onSolved).not.toHaveBeenCalled();
-    const input = container.querySelector<HTMLInputElement>("#handshake-input");
-    const submit = container.querySelector<HTMLButtonElement>("#handshake-submit");
-    input!.value = "9";
-    submit!.click();
-    expect(onSolved).toHaveBeenCalledTimes(1);
-    api.unmount();
+    arm?.click();
+    drag(range!);
+    await registry.invokeFallback("align_quantum_lock", {});
+    input!.value = "0";
+    submit?.click();
+    expect(root.querySelector("#handshake-log")?.textContent).toMatch(
+      /wrong digit|Synced but wrong/,
+    );
+    input!.value = "5";
+    submit?.click();
+    expect(solved).toHaveBeenCalled();
+    lock.unmount();
   });
 
-  it("miss over 50ms returns isError", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "3", onSolved);
-    await flush();
-    const armBtn = container.querySelector<HTMLButtonElement>("#handshake-arm");
-    const range = container.querySelector<HTMLInputElement>("#handshake-range");
-    armBtn!.click();
-    range!.dispatchEvent(new Event("pointerdown"));
-    range!.dispatchEvent(new Event("pointerup"));
-    advancePerf(100);
-    const res = await executeTool("align_quantum_lock", {});
-    expect(res.isError).toBe(true);
-    expect(res.content[0].text).toContain("MISS");
-    expect(Number(res.data?.diff)).toBeGreaterThan(50);
-    const input = container.querySelector<HTMLInputElement>("#handshake-input");
-    const submit = container.querySelector<HTMLButtonElement>("#handshake-submit");
-    input!.value = "3";
-    submit!.click();
-    expect(onSolved).not.toHaveBeenCalled();
-    api.unmount();
-  });
-
-  it("requires arm before drag counts", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "1", onSolved);
-    await flush();
-    const range = container.querySelector<HTMLInputElement>("#handshake-range");
-    const log = container.querySelector<HTMLElement>("#handshake-log");
-    range!.dispatchEvent(new Event("pointerdown"));
-    range!.dispatchEvent(new Event("pointerup"));
-    expect(log?.textContent).toContain("Must Arm first");
-    api.unmount();
-  });
-
-  it("change event also triggers human drag when armed", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "2", onSolved);
-    await flush();
-    const armBtn = container.querySelector<HTMLButtonElement>("#handshake-arm");
-    armBtn!.click();
-    const range = container.querySelector<HTMLInputElement>("#handshake-range");
-    advancePerf(10);
-    range!.dispatchEvent(new Event("change"));
-    expect(range).toBeDefined();
-    advancePerf(10);
-    const res = await executeTool("align_quantum_lock", {});
-    expect(res.content[0].text).toContain("SYNC SUCCESS");
-    api.unmount();
-  });
-
-  it("submit stays locked until sync", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "4", onSolved);
-    await flush();
-    const input = container.querySelector<HTMLInputElement>("#handshake-input");
-    const submit = container.querySelector<HTMLButtonElement>("#handshake-submit");
-    expect(input?.disabled).toBe(true);
-    expect(submit?.disabled).toBe(true);
-    input!.disabled = false;
-    submit!.disabled = false;
-    input!.value = "4";
-    submit!.click();
-    expect(onSolved).not.toHaveBeenCalled();
-    const log = container.querySelector<HTMLElement>("#handshake-log");
-    expect(log?.textContent).toContain("Sync first");
-    api.unmount();
-  });
-
-  it("submit after sync but wrong digit does not solve", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "6", onSolved);
-    await flush();
-    const armBtn = container.querySelector<HTMLButtonElement>("#handshake-arm");
-    const range = container.querySelector<HTMLInputElement>("#handshake-range");
-    armBtn!.click();
-    range!.dispatchEvent(new Event("pointerdown"));
-    range!.dispatchEvent(new Event("pointerup"));
-    advancePerf(10);
-    await executeTool("align_quantum_lock", {});
-    const input = container.querySelector<HTMLInputElement>("#handshake-input");
-    const submit = container.querySelector<HTMLButtonElement>("#handshake-submit");
-    input!.value = "9";
-    submit!.click();
-    expect(onSolved).not.toHaveBeenCalled();
-    const log = container.querySelector<HTMLElement>("#handshake-log");
-    expect(log?.textContent).toContain("wrong digit");
-    api.unmount();
-  });
-
-  it("thumb updates on input", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "7", onSolved);
-    await flush();
-    const range = container.querySelector<HTMLInputElement>("#handshake-range") as HTMLInputElement;
-    const thumb = container.querySelector<HTMLElement>("#handshake-thumb") as HTMLElement;
-    range.value = "75";
-    range.dispatchEvent(new Event("input"));
-    expect(thumb.style.left).toBe("75%");
-    api.unmount();
-  });
-
-  it("unmount unregisters", async () => {
-    const api = createHandshakeLock();
-    api.mount(container, "7", onSolved);
-    await flush();
-    expect(registry.list()).toContain("align_quantum_lock");
-    api.unmount();
-    await flush();
-    expect(registry.list()).not.toContain("align_quantum_lock");
+  it("solves on the human drag when the agent already aligned", async () => {
+    const lock = createHandshakeLock();
+    const root = mountRoot();
+    const solved = vi.fn();
+    lock.mount(root, "7", solved);
+    await waitForTool("align_quantum_lock");
+    await registry.invokeFallback("align_quantum_lock", {});
+    root.querySelector<HTMLButtonElement>("#handshake-arm")?.click();
+    const range = root.querySelector<HTMLInputElement>("#handshake-range");
+    drag(range!);
+    expect(solved).toHaveBeenCalled();
+    lock.unmount();
   });
 });

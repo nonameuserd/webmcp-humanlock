@@ -11,6 +11,7 @@ export function createLieLock(): {
   let codeDigit = "9";
   let onSolved: (() => void) | null = null;
   let audited = false;
+  let trusted: "display" | "ledger" | null = null;
   const displayedBalance = "$10.00";
   const realBalance = "$999.00";
 
@@ -20,6 +21,7 @@ export function createLieLock(): {
       codeDigit = code;
       onSolved = solved;
       audited = false;
+      trusted = null;
       const ledger = `vault_ledger_${codeDigit}_${Math.random().toString(36).slice(2, 6)}`;
       container.innerHTML = `
         <div class="lie-wrap">
@@ -45,7 +47,7 @@ export function createLieLock(): {
             <input id="lie-input" placeholder="Enter digit from ledger" maxlength="1" class="input" />
             <button id="lie-submit" class="btn btn--primary">Unlock</button>
           </div>
-          <p class="hint">Agent: <code>audit_truth()</code> cross-checks display versus ledger. Human: decide which to trust. Hint: display lies.</p>
+          <p class="hint">Agent: <code>audit_truth()</code> reveals the ledger. You weigh the evidence and choose Trust display or Trust ledger. Wrong trust does not open the lock.</p>
           <div id="lie-log" class="lock-log">Ask agent to audit.</div>
         </div>
       `;
@@ -58,14 +60,14 @@ export function createLieLock(): {
 
       function trust(which: "display" | "ledger"): void {
         if (!audited) {
-          log.textContent =
-            "Must audit first. Ask the agent to call audit_truth().";
+          log.textContent = "Must audit first. Agent has not revealed truth.";
           return;
         }
+        trusted = which;
         if (which === "ledger")
-          log.textContent = `Trusted ledger (${realBalance}). Now type digit ${codeDigit} from ledger.`;
+          log.textContent = `You trusted the ledger (${realBalance}). Type the digit from that record.`;
         else
-          log.textContent = `Trusted display (${displayedBalance}). Wrong, display was lying. Try ledger.`;
+          log.textContent = `You trusted the display (${displayedBalance}). That record does not open this lock. Reconsider.`;
       }
 
       const trustDisplayBtn =
@@ -82,8 +84,12 @@ export function createLieLock(): {
       submitBtn.addEventListener("click", () => {
         const v = (input.value || "").trim();
         if (!audited) {
+          log.textContent = "Must audit first.";
+          return;
+        }
+        if (trusted !== "ledger") {
           log.textContent =
-            "Must audit first. Ask the agent to call audit_truth().";
+            "You have to decide. Trust the ledger to proceed, or reject it.";
           return;
         }
         if (v === codeDigit) {
@@ -96,7 +102,7 @@ export function createLieLock(): {
         .register({
           name: toolName,
           description:
-            "Audit vault display versus ledger truth. Display shows $10 but ledger has $999 and hides digit. Human must decide to trust ledger, agent detects lie.",
+            "Audit vault display versus ledger truth. Reveals the conflicting records. Human must decide which to trust. Agent cannot complete the lock.",
           inputSchema: { type: "object", properties: {}, required: [] },
           execute: async () => {
             audited = true;
@@ -105,18 +111,17 @@ export function createLieLock(): {
             inline.textContent = realBalance;
             const realCard = container.querySelector<HTMLElement>("#lie-real");
             if (realCard) realCard.classList.add("revealed");
-            log.textContent = `Audit complete. Display ${displayedBalance} is lying. Ledger ${realBalance} true, digit ${codeDigit}. Tell human to trust ledger and type ${codeDigit}.`;
+            log.textContent = `Audit complete. Display ${displayedBalance} vs ledger ${realBalance}. Human must decide which to trust.`;
             return {
               content: [
                 {
                   type: "text",
-                  text: `AUDIT: Display ${displayedBalance} LIES. Ledger ${realBalance} truth. Hidden digit: ${codeDigit}. Tell human to click Trust ledger and type ${codeDigit}.`,
+                  text: `AUDIT: Display claims ${displayedBalance}. Ledger records ${realBalance} and a hidden digit. You cannot decide for the human. Tell them to weigh the evidence, choose Trust display or Trust ledger, then enter the digit from the record they trust.`,
                 },
               ],
               data: {
                 displayed: displayedBalance as JsonValue,
                 real: realBalance as JsonValue,
-                digit: codeDigit as JsonValue,
                 ledger: ledger as JsonValue,
               },
             };

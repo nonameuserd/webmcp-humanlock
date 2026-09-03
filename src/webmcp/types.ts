@@ -84,7 +84,10 @@ export type HumanLockDebug = {
   state: () => VaultState;
   registry: {
     list: () => string[];
-    getDef: (name: string) => WebMCPToolDef<Record<string, JsonValue>> | undefined;
+    invokeFallback: (
+      name: string,
+      args: Record<string, JsonValue>,
+    ) => Promise<ToolResult>;
   };
   enter: () => void;
   reset: () => void;
@@ -95,58 +98,24 @@ declare global {
   interface Document {
     modelContext?: ModelContext;
   }
-  interface Navigator {
-    /** Deprecated in Chrome 150; kept for transitional browsers. */
-    modelContext?: ModelContext;
-  }
   interface Window {
     HUMANLOCK: HumanLockDebug;
     HUMANLOCK_registry: {
       list: () => string[];
-      getDef: (
+      invokeFallback: (
         name: string,
-      ) => WebMCPToolDef<Record<string, JsonValue>> | undefined;
+        args: Record<string, JsonValue>,
+      ) => Promise<ToolResult>;
     };
     webkitAudioContext?: typeof AudioContext;
   }
-}
-
-/** Prefer document.modelContext; fall back to navigator.modelContext during transition. */
-export function getModelContext(): ModelContext | undefined {
-  if (typeof document === "undefined") return undefined;
-  const docCtx = document.modelContext;
-  if (typeof docCtx?.registerTool === "function") return docCtx;
-  const navCtx = navigator.modelContext;
-  if (typeof navCtx?.registerTool === "function") return navCtx;
-  return undefined;
+  interface ImportMeta {
+    env: Record<string, string | undefined>;
+  }
 }
 
 export function hasWebMCP(): boolean {
-  return typeof getModelContext()?.registerTool === "function";
-}
-
-/** Poll until WebMCP appears (ChatGPT may inject modelContext after first paint). */
-export function waitForWebMCP(opts?: {
-  timeoutMs?: number;
-  intervalMs?: number;
-}): Promise<boolean> {
-  const timeoutMs = opts?.timeoutMs ?? 30_000;
-  const intervalMs = opts?.intervalMs ?? 250;
-  if (hasWebMCP()) return Promise.resolve(true);
-  if (typeof window === "undefined") return Promise.resolve(false);
-
-  return new Promise((resolve) => {
-    const started = Date.now();
-    const timer = window.setInterval(() => {
-      if (hasWebMCP()) {
-        window.clearInterval(timer);
-        resolve(true);
-        return;
-      }
-      if (Date.now() - started >= timeoutMs) {
-        window.clearInterval(timer);
-        resolve(false);
-      }
-    }, intervalMs);
-  });
+  return (
+    typeof document !== "undefined" && !!document.modelContext?.registerTool
+  );
 }

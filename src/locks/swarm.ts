@@ -56,7 +56,7 @@ export function createSwarmLock(): SwarmApi {
       btn.addEventListener("click", () => {
         if (!filtered) {
           log(
-            "Must filter first. Ask the agent to call filter_by_vibe with a trustworthy description.",
+            `Must filter first. Ask agent: filter_by_vibe({ description: "most trustworthy, government issued" })`,
           );
           return;
         }
@@ -113,7 +113,7 @@ export function createSwarmLock(): SwarmApi {
             <input id="swarm-pick" placeholder="Type BTN-XXXX of real button" class="input" />
             <button id="swarm-submit" class="btn btn--ghost">Submit typed ID</button>
           </div>
-          <p class="hint">Agent: <code>filter_by_vibe({ description: "most trustworthy, official, government certified" })</code> narrows to 12 candidates. Human: pick the one with serif font and double border.</p>
+          <p class="hint">Agent narrows the swarm. You pick the real control from the lookalikes (serif font, double border). Tell agent: <code>filter_by_vibe({ description: "most trustworthy, official, government certified" })</code>.</p>
           <div id="swarm-log" class="lock-log"></div>
         </div>
       `;
@@ -128,6 +128,12 @@ export function createSwarmLock(): SwarmApi {
         container.querySelector<HTMLButtonElement>("#swarm-submit");
       if (!pickInput || !submitBtn) return;
       submitBtn.addEventListener("click", () => {
+        if (!filtered) {
+          log(
+            `Must filter first. Ask agent: filter_by_vibe({ description: "most trustworthy, government issued" })`,
+          );
+          return;
+        }
         const v = pickInput.value.trim().toUpperCase();
         const m = v.match(/BTN-(\d{4})/);
         if (!m) {
@@ -204,13 +210,12 @@ export function createSwarmLock(): SwarmApi {
             );
             const dataStrong: Record<string, JsonValue> = {
               candidates: candidates as JsonValue,
-              realIndex: realIndex as JsonValue,
             };
             return {
               content: [
                 {
                   type: "text",
-                  text: `Filtered 5000 -> 12 candidates. Tell human to visually inspect for serif font and double border. Real hides digit ${codeDigit}. Candidates: ${candidates.map((n) => `BTN-${String(n).padStart(4, "0")}`).join(", ")}`,
+                  text: `Filtered 5000 -> 12 candidates. You cannot pick for the human. Tell them to inspect the highlighted lookalikes for serif font and double border. Candidates: ${candidates.map((n) => `BTN-${String(n).padStart(4, "0")}`).join(", ")}`,
                 },
               ],
               data: dataStrong,

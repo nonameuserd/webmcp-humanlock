@@ -1,14 +1,5 @@
 import type { WebMCPToolDef, JsonValue, ToolResult } from "./types";
-import { getModelContext, hasWebMCP } from "./types";
-
-export class WebMCPRequiredError extends Error {
-  constructor() {
-    super(
-      "WebMCP required: document.modelContext.registerTool is not available",
-    );
-    this.name = "WebMCPRequiredError";
-  }
-}
+import { hasWebMCP } from "./types";
 
 type RegistryEntry = {
   def: WebMCPToolDef<Record<string, JsonValue>>;
@@ -25,7 +16,7 @@ class ToolRegistry {
   }
 
   statusText(): string {
-    if (!this.isSupported()) return "WebMCP required";
+    if (!this.isSupported()) return "WebMCP unavailable - using fallback";
     return `WebMCP ready - ${this.entries.size} tools registered`;
   }
 
@@ -41,53 +32,54 @@ class ToolRegistry {
     for (const fn of this.listeners) fn(names);
   }
 
-  private async bindToWebMCP(entry: RegistryEntry): Promise<void> {
-    const modelContext = getModelContext();
-    if (!modelContext) throw new WebMCPRequiredError();
-    const { def, controller } = entry;
-    await modelContext.registerTool(
-      {
-        name: def.name,
-        description: def.description,
-        inputSchema: def.inputSchema,
-        execute: async (
-          args: Record<string, JsonValue>,
-          opts?: { signal?: AbortSignal },
-        ): Promise<ToolResult> => {
-          const signal = opts?.signal ?? controller.signal;
-          if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-          return def.execute(args, { signal });
-        },
-      },
-      { signal: controller.signal },
-    );
-    console.info(`[registry] registered tool ${def.name}`);
-  }
-
   async register(
     def: WebMCPToolDef<Record<string, JsonValue>>,
   ): Promise<AbortController> {
-    if (!this.isSupported()) {
-      throw new WebMCPRequiredError();
-    }
-
     const controller = new AbortController();
     const entry: RegistryEntry = { def, controller, registered: false };
     this.entries.set(def.name, entry);
-    controller.signal.addEventListener("abort", () => {
-      entry.registered = false;
+
+    if (!this.isSupported()) {
+      console.info(
+        `[registry] WebMCP unavailable, faking registration for ${def.name}`,
+      );
+      entry.registered = true;
       this.emit();
-    });
+      return controller;
+    }
 
     try {
-      await this.bindToWebMCP(entry);
+      const modelContext = document.modelContext;
+      if (!modelContext) throw new Error("modelContext missing");
+      await modelContext.registerTool(
+        {
+          name: def.name,
+          description: def.description,
+          inputSchema: def.inputSchema,
+          execute: async (
+            args: Record<string, JsonValue>,
+            opts?: { signal?: AbortSignal },
+          ): Promise<ToolResult> => {
+            const signal = opts?.signal ?? controller.signal;
+            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+            return def.execute(args, { signal });
+          },
+        },
+        { signal: controller.signal },
+      );
       entry.registered = true;
+      console.info(`[registry] registered tool ${def.name}`);
       this.emit();
     } catch (err) {
       console.error(`[registry] failed to register ${def.name}`, err);
       this.entries.delete(def.name);
       throw err;
     }
+
+    controller.signal.addEventListener("abort", () => {
+      entry.registered = false;
+      this.emit();
+    });
 
     return controller;
   }
@@ -110,6 +102,15 @@ class ToolRegistry {
     return [...this.entries.entries()]
       .filter(([, e]) => e.registered)
       .map(([n]) => n);
+  }
+
+  async invokeFallback(
+    name: string,
+    args: Record<string, JsonValue>,
+  ): Promise<ToolResult> {
+    const entry = this.entries.get(name);
+    if (!entry) throw new Error(`Tool ${name} not found`);
+    return entry.def.execute(args, { signal: entry.controller.signal });
   }
 
   getDef(name: string): WebMCPToolDef<Record<string, JsonValue>> | undefined {

@@ -95,7 +95,7 @@ export function createWhisperLock(): {
             <input id="whisper-input" placeholder="Digit from spectrogram" maxlength="1" class="input" />
             <button id="whisper-submit" class="btn btn--primary">Unlock</button>
           </div>
-          <p class="hint">Human: you will hear nothing or a faint click. Tell agent: <code>sonify_to_spectrogram()</code> to see the sound.</p>
+          <p class="hint">You will hear nothing or a faint click. Tell your agent: <code>call sonify_to_spectrogram()</code>. Then you read the spectrogram and type the digit. The agent cannot submit for you.</p>
           <div id="whisper-log" class="lock-log">Click Play, then ask agent to visualize.</div>
         </div>
       `;
@@ -133,14 +133,13 @@ export function createWhisperLock(): {
       revealBtn.addEventListener("click", () => {
         if (!revealed)
           log.textContent =
-            "Spectrogram not yet rendered. Ask the agent to call sonify_to_spectrogram().";
+            "Spectrogram not yet rendered. Ask agent to call sonify_to_spectrogram().";
         else log.textContent = "Human sees digit in spectrogram. Type it.";
       });
       submitBtn.addEventListener("click", () => {
         const v = (input.value || "").trim();
         if (!revealed) {
-          log.textContent =
-            "Must spectrogram first. Ask the agent to call sonify_to_spectrogram().";
+          log.textContent = "Must spectrogram first.";
           return;
         }
         if (v === codeDigit) {
@@ -153,19 +152,20 @@ export function createWhisperLock(): {
         .register({
           name: toolName,
           description:
-            "Convert the ultrasonic WebAudio buffer to a visible spectrogram canvas. Renders hidden digit that human can read. Human hears nothing, agent sees nothing until this is called.",
+            "Convert the ultrasonic WebAudio buffer to a visible spectrogram canvas. The spectrogram is for the human to read. Do not expect the digit in this tool result.",
           inputSchema: { type: "object", properties: {}, required: [] },
           execute: async () => {
             drawSpectrogram(canvas, codeDigit);
-            log.textContent = `Spectrogram rendered. Digit ${codeDigit} visible in center. Tell human to read it.`;
+            log.textContent =
+              "Spectrogram rendered. Human: read the image and type the digit. Agent cannot submit it.";
             return {
               content: [
                 {
                   type: "text",
-                  text: `Spectrogram rendered. Hidden digit is ${codeDigit}. Tell human to type ${codeDigit}.`,
+                  text: "Spectrogram rendered on the shared canvas. You cannot read the canvas. Tell the human to interpret the image and type the digit, then click Unlock.",
                 },
               ],
-              data: { digit: codeDigit as JsonValue },
+              data: { rendered: true as JsonValue },
             };
           },
         })

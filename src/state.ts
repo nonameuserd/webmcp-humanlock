@@ -1,5 +1,4 @@
 import type { VaultLockId, VaultState } from "./webmcp/types";
-import { HANDSHAKE_SYNC_MS } from "./locks/handshake";
 
 const ORDER: VaultLockId[] = ["blur", "swarm", "whisper", "lie", "handshake"];
 
@@ -52,22 +51,6 @@ export function progressText(state: VaultState): string {
   return `${solved} / ${ORDER.length} locks`;
 }
 
-/** Compact progress for unified status line (e.g. `2/5`). */
-export function progressShort(state: VaultState): string {
-  const solved = ORDER.filter((id) => state.solved[id]).length;
-  return `${solved}/${ORDER.length}`;
-}
-
-export const LOCK_ORDER: VaultLockId[] = ORDER;
-
-export const LOCK_TOOLS: Record<VaultLockId, string> = {
-  blur: "freeze_frame",
-  swarm: "filter_by_vibe",
-  whisper: "sonify_to_spectrogram",
-  lie: "audit_truth",
-  handshake: "align_quantum_lock",
-};
-
 export const LOCK_TITLES: Record<VaultLockId, string> = {
   blur: "THE BLUR",
   swarm: "THE SWARM",
@@ -77,16 +60,32 @@ export const LOCK_TITLES: Record<VaultLockId, string> = {
 };
 
 export const LOCK_DESCS: Record<VaultLockId, string> = {
-  blur: "240fps flash hides a digit. Human spots glitch, agent freezes frame.",
-  swarm: "5000 buttons, only one is real. Agent filters by vibe, human picks.",
-  whisper: "Ultrasonic tone hides code. Agent converts to spectrogram, human reads.",
-  lie: "Display lies about vault balance. Agent audits truth, human decides trust.",
-  handshake: `Human drag and agent align must land within ${HANDSHAKE_SYNC_MS}ms. Prove symbiosis.`,
+  blur: "High-frame-rate canvas hides a digit. Human spots the glitch, agent freezes the frame.",
+  swarm:
+    "Lookalikes flood the grid. Agent narrows the swarm, human picks the real control by judgment.",
+  whisper:
+    "Ultrasonic tone hides a digit. Agent renders the spectrogram, human reads it and submits.",
+  lie: "The display and the ledger disagree. Agent audits, human weighs the evidence and decides.",
+  handshake:
+    "Human drag and agent align must land within 50ms. Retries are instant.",
+};
+
+/** Copy-paste lines shown in each lock UI. Judges will not reread Devpost. */
+export const LOCK_AGENT_PROMPTS: Record<VaultLockId, string> = {
+  blur: "Tell your agent: call freeze_frame at the glitch you see (try timestamp 300).",
+  swarm:
+    'Tell your agent: call filter_by_vibe with description "most trustworthy, government certified". Then pick the real control from the candidates.',
+  whisper:
+    "Tell your agent: call sonify_to_spectrogram(). Then read the spectrogram yourself and type the digit.",
+  lie: "Tell your agent: call audit_truth(). Then decide whether to trust the display or the ledger.",
+  handshake:
+    "Tell your agent: call align_quantum_lock() as you drag the slider. Retry immediately if you miss the 50ms window.",
 };
 
 export function generateSig(vaultCode: string): string {
   const raw = `${vaultCode}-${Date.now().toString(36)}`;
   let hash = 0;
-  for (let i = 0; i < raw.length; i++) hash = (hash * 31 + raw.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < raw.length; i++)
+    hash = (hash * 31 + raw.charCodeAt(i)) >>> 0;
   return `hl_${hash.toString(36).slice(0, 8)}_${vaultCode}`;
 }

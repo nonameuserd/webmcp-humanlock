@@ -1,24 +1,78 @@
 # HUMANLOCK - The Vault You Cannot Open Alone
 
-A WebMCP Challenge submission. The first website that is impossible without human and agent together.
+**A WebMCP Challenge submission. A website that is impossible without human and agent together.**
 
-HUMANLOCK is a vault with 5 locks. Each lock exploits a gap between human perception and agent perception. Human alone fails. Agent alone fails. Together, you open it.
+## Inspiration
 
-Built for the [OpenAI WebMCP Challenge](https://openai.com/webmcp-challenge/) (Aug 25 - Sep 3, 2026). WebMCP is an experimental standard that lets websites expose `document.modelContext.registerTool()` tools for agents to call directly in the page, sharing UI state.
+We kept asking: what would a website look like if it required human and agent together, not as a gimmick but as the core mechanic?
 
-## What Humanlock is
+HUMANLOCK is our answer. It borrows the tension of *Keep Talking and Nobody Explodes* and DEFCON-style puzzles, but rebuilt for WebMCP: the agent does not scrape the page. It calls tools that share the same UI state you see.
 
-5 locks, each breaks a different sense. Only human and agent together can open it.
+Human alone fails. Agent alone fails. Together, you open it.
 
-| Lock | Name | Human sees | Agent tool | Why symbiosis matters |
-| :-- | :-- | :-- | :-- | :-- |
-| 1 | **THE BLUR** | Code flashing at 240fps, unreadable | `freeze_frame({ timestamp })` freezes canvas, reveals digit | Human must spot timing glitch, agent must freeze precisely |
-| 2 | **THE SWARM** | 5000 identical buttons, one is real | `filter_by_vibe({ description })` filters to 12 candidates | Agent narrows swarm, human uses intuition to pick |
-| 3 | **THE WHISPER** | Ultrasonic audio, silent to human ear | `sonify_to_spectrogram()` renders as image you can see | Human hears nothing, agent sees nothing, translation needs both |
-| 4 | **THE LIE** | Vault display says $10, ledger says ??? | `audit_truth()` cross-checks and reveals lie | Agent detects lie, human decides to trust |
-| 5 | **THE HANDSHAKE** | Slider must be dragged | `align_quantum_lock()` must fire within 50ms of drag | Proves simultaneity, neither can fake |
+HUMANLOCK explores what happens when the web does not ask "human or agent?" but asks "what should each of them be responsible for?" It is inspired by Chitmark's allow / challenge / deny trust model: an experiment in what a "challenge" could feel like when the missing ingredient is a human.
 
-Fail to open in 30 seconds of inactivity and the vault decays. Succeed and you mint a co-signed HUMANLOCK certificate (shareable URL with both signatures).
+## What it does
+
+HUMANLOCK is a vault with 5 locks. Each lock exploits a gap between human perception and agent perception:
+
+| Lock | Human | Agent (WebMCP tool) |
+| --- | --- | --- |
+| **THE BLUR** | Spots a timing glitch in a high-frame-rate canvas | `freeze_frame({ timestamp })` |
+| **THE SWARM** | Picks the real control by judgment among lookalikes (agent narrows 5000 to 12) | `filter_by_vibe({ description })` |
+| **THE WHISPER** | Reads the spectrogram and enters the digit (agent cannot submit) | `sonify_to_spectrogram()` |
+| **THE LIE** | Weighs the evidence and decides whether to trust or reject | `audit_truth()` reveals the conflicting ledger |
+| **THE HANDSHAKE** | Drags the slider in the same instant | `align_quantum_lock()` within 50ms |
+
+This is not a CAPTCHA. A CAPTCHA verifies humanness once and then lets the agent act alone. Here neither party can finish any lock solo, and the point is authorization at every step, not proving you are human at the door.
+
+Stop cooperating for 30 seconds and the vault decays. Clear all five and you mint a co-signed HUMANLOCK certificate (shareable URL with human and agent signatures). Certificate links render without WebMCP.
+
+**Try it:** open the demo in ChatGPT's in-app browser or Chrome Canary with `#enable-webmcp`, click **Enter vault**, and prompt your agent (the same prompt is copyable inside the app):
+
+> List my WebMCP tools and help me open this vault. Start with THE BLUR, call freeze_frame at the glitch.
+
+On phones: tap to play audio (autoplay is blocked) and expect a coarser canvas than a desktop GPU. THE HANDSHAKE retries instantly on a miss and shows the measured delta on success.
+
+## How we built it
+
+Static Vite and TypeScript SPA on Cloudflare Pages. No backend: all state is client-side.
+
+WebMCP tools register **dynamically** per lock via `document.modelContext.registerTool()`. When a lock clears, its tool unregisters and the next lock's tool appears. Agents discover tools through `getTools()` or `toolchange` listeners.
+
+Each lock is an isolated module (`blur`, `swarm`, `whisper`, `lie`, `handshake`) with typed JSON Schema inputs and deterministic success checks. No model in the lock loop.
+
+## Challenges we ran into
+
+- **Symbiosis that feels fair:** every lock had to fail for solo human and solo agent playtests, not just in theory. Tools must not leak the human's decision (no digit in spectrogram results, no real button index in swarm results).
+- **Dynamic tool lifecycle:** registering and tearing down five tools without race conditions or stale tool lists.
+- **THE HANDSHAKE timing:** proving simultaneity with a 50ms window between human drag and agent tool call, with instant retries so live latency does not kill the demo.
+- **WebMCP availability:** experimental browser support means clear degraded UX when tools are unavailable (fail closed, no fake success). The page tells you to open ChatGPT's in-app browser or enable `#enable-webmcp`.
+
+## What's next
+
+We're exploring a reusable pattern from this: a "human authorization" step for consequential actions (publishing, permission changes, data deletion) where the agent prepares and verifies, and the site enforces that a human decides. The vault is the playground; the primitive is the point.
+
+## Built by
+
+**HUMANLOCK** by [Chitmark](https://chitmark.com). Chitmark works on trust decisions for agent-mediated actions; HUMANLOCK is our WebMCP Challenge experiment in shared agency: what it feels like to open a vault that neither of you can open alone.
+
+## How to run
+
+Requires Node 24 and later, pnpm 9.15.4.
+
+```bash
+pnpm install
+pnpm dev      # http://127.0.0.1:5173
+pnpm build
+pnpm preview
+```
+
+### Testing WebMCP
+
+1. **Chrome Canary:** enable `chrome://flags/#enable-webmcp`, reload.
+2. **ChatGPT in-app browser:** open the deployed URL, chat with the agent, ask it to list tools.
+3. **Fallback:** Without WebMCP, debug buttons simulate tool calls for local testing. That is not a judged open.
 
 ## Project layout
 
@@ -32,59 +86,19 @@ src/
     registry.ts      # registerTool wrappers, feature detection, AbortController lifecycle
     types.ts         # tool schemas and shared types
   locks/
-    blur.ts          # 240fps canvas, freeze logic, code extraction
-    swarm.ts         # 5000 buttons generation, vibe filtering, candidate highlighting
-    whisper.ts       # WebAudio ultrasonic buffer, spectrogram canvas, FFT
-    lie.ts           # deceptive ledger, audit logic, trust UI
-    handshake.ts     # slider and timing gate, 50ms window, simultaneous check
+    blur.ts
+    swarm.ts
+    whisper.ts
+    lie.ts
+    handshake.ts
   utils/
-    decay.ts         # vault decay timer and visual effects
+    decay.ts
 public/
-  _headers           # security and immutable caching
-  _redirects         # SPA fallback to index.html
 ```
 
-## How to run
+## Deployment
 
-Requires Node 24 and later, pnpm 9.15.4.
-
-### Locally
-
-```bash
-pnpm --ignore-workspace install
-pnpm dev      # http://127.0.0.1:5173
-pnpm build
-pnpm preview  # http://127.0.0.1:4173
-```
-
-Test in Chrome Canary with `chrome://flags/#enable-webmcp` or in ChatGPT in-app browser. Without WebMCP, the vault shows fallback mode and debug buttons.
-
-Try this prompt after opening the vault:
-
-> List my WebMCP tools and help me open this vault. Start with THE BLUR, call freeze_frame at the glitch.
-
-### At https://webmcp-humanlock.pages.dev/
-
-Live deployment on Cloudflare Pages:
-
-```
-https://webmcp-humanlock.pages.dev/
-```
-
-Open the URL in a WebMCP enabled browser (ChatGPT app or Chrome Canary with flag). Without WebMCP you will see `WebMCP unavailable - fallback mode` and can still play via debug buttons. Share the certificate URL after solving: `https://webmcp-humanlock.pages.dev/?code=XXXXX&sig=hl_...`
-
-To redeploy:
-
-```bash
-pnpm run deploy
-```
-
-## Credits
-
-HUMANLOCK by [Chitmark](https://chitmark.com). Built by dami.
-
-Built for WebMCP Challenge. Inspired by Keep Talking and Nobody Explodes, DEFCON CTF, and the WebMCP spec by Microsoft and Google.
+Static site. `pnpm build` outputs to `dist/`. Set `VITE_VAULT_SEED` for a deterministic demo code.
 
 Spec: https://github.com/webmachinelearning/webmcp
-Types: https://www.npmjs.com/package/webmcp-types
 Challenge: https://webmcp.devpost.com
